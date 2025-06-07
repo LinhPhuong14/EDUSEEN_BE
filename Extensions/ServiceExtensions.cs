@@ -8,8 +8,7 @@ namespace Sep490_Eduseen_BE.Extensions
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
             services.AddScoped<IEmailService, EmailService>();  
-            services.AddScoped<IOtpService, OtpService>();      
-
+            services.AddScoped<IOtpService, OtpService>();
             return services;
         }
     }

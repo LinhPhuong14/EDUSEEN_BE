@@ -41,7 +41,9 @@ namespace Sep490_Eduseen_BE.Repositories.impl
 
         public async Task<User> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {
-            return await _userRepository.GetByIdAsync(id, cancellationToken);
+            return await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.UserId == id, cancellationToken);
         }
 
         public async Task<User> GetByEmailAsync(string email, CancellationToken cancellationToken = default)

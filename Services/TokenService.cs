@@ -134,7 +134,6 @@ namespace Sep490_Eduseen_BE.Services
                 return (false, new[] { "User not found." });
             }
 
-            user.EmailConfirmed = true;
             await _userRepository.UpdateAsync(user);
             await _tokenRepository.DeleteAsync(confirmationToken.UserId);
 

@@ -19,9 +19,9 @@ public static class DependencyInjectionExtensions
         services.AddScoped<IRepositoryAsync<EmailConfirmationToken>, RepositoryAsync<EmailConfirmationToken>>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ITokenService, TokenService>();
-        services.AddScoped<IOtpService, OtpService>();
-        services.AddScoped<IEmailService, EmailService>();
-
+        services.AddScoped<IUserContext, UserContext>();
+        services.AddScoped<IProfileService, ProfileService>();
+        services.AddScoped<IUserService, UserService>();
 
         return services;
     }

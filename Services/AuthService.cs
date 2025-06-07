@@ -222,7 +222,6 @@ namespace Sep490_Eduseen_BE.Services
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerDTO.Password),
                 RoleId = role.RoleId, 
                 IsActive = true, 
-                EmailConfirmed = false,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 RefreshToken = refreshToken,

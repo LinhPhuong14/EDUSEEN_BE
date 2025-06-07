@@ -571,7 +571,6 @@ public partial class Sep490EduseenContext : DbContext
             entity.Property(e => e.Email)
                 .HasMaxLength(100)
                 .HasColumnName("email");
-            entity.Property(e => e.EmailConfirmed).HasColumnName("email_confirmed");
             entity.Property(e => e.FirstName)
                 .HasMaxLength(50)
                 .HasColumnName("first_name");

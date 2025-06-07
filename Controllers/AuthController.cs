@@ -83,7 +83,7 @@ namespace Sep490_Eduseen_BE.Controllers
 
             _logger.LogInformation("OTP verified and user registered successfully for email: {Email}", confirmOtpDTO.Email);
             return Ok(new { Message = "OTP verified and user registered successfully.", Data = response });
-        }      
+        }
 
         [HttpPost("logout")]
         [Authorize]

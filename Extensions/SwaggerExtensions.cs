@@ -8,7 +8,6 @@ public static class SwaggerExtensions
         services.AddSwaggerGen(option =>
         {
             option.SwaggerDoc("v1", new OpenApiInfo { Title = "Demo API", Version = "v1" });
-            option.EnableAnnotations();
             option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 In = ParameterLocation.Header,
@@ -16,7 +15,7 @@ public static class SwaggerExtensions
                 Name = "Authorization",
                 Type = SecuritySchemeType.Http,
                 BearerFormat = "JWT",
-                Scheme = "Bearer"
+                Scheme = "bearer"
             });
             option.AddSecurityRequirement(new OpenApiSecurityRequirement
             {

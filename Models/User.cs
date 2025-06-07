@@ -27,8 +27,6 @@ public partial class User
 
     public bool? IsActive { get; set; }
 
-    public bool? EmailConfirmed { get; set; }
-
     public string? RefreshToken { get; set; }
 
     public DateTime? RefreshTokenExpiresAt { get; set; }
