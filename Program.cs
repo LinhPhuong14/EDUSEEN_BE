@@ -1,14 +1,15 @@
-using Sep490_Eduseen_BE.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
+using Sep490_Eduseen_BE.Extensions;
 using Sep490_Eduseen_BE.Models;
 using Sep490_Eduseen_BE.Profiles;
-using Sep490_Eduseen_BE.Repositories.impl;
 using Sep490_Eduseen_BE.Repositories;
+using Sep490_Eduseen_BE.Repositories.impl;
+using Sep490_Eduseen_BE.Services;
 using Sep490_Eduseen_BE.Services;
 using System.Text;
-using Sep490_Eduseen_BE.Extensions;
 
 namespace Sep490_Eduseen_BE
 {
@@ -43,6 +44,15 @@ namespace Sep490_Eduseen_BE
             app.UseCorsPolicy(builder.Environment);
             app.UseSwaggerServices(builder.Environment);
             app.Run();
+
+            // Upload file
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(
+        Path.Combine(builder.Environment.ContentRootPath, "Uploads")),
+                RequestPath = "/uploads"
+            });
         }
+
     }
 }
