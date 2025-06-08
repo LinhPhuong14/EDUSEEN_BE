@@ -28,22 +28,22 @@ namespace Sep490_Eduseen_BE.Dtos
     }
     public class UpdateUserDTO
     {
-        [StringLength(50, ErrorMessage = "Username cannot exceed 50 characters.")]
-        public string? Username { get; set; }
+        //[StringLength(50, ErrorMessage = "Username cannot exceed 50 characters.")]
+        //public string? Username { get; set; }
 
-        [EmailAddress(ErrorMessage = "Invalid email format.")]
-        [StringLength(100, ErrorMessage = "Email cannot exceed 100 characters.")]
-        public string? Email { get; set; }
+        //[EmailAddress(ErrorMessage = "Invalid email format.")]
+        //[StringLength(100, ErrorMessage = "Email cannot exceed 100 characters.")]
+        //public string? Email { get; set; }
 
-        [StringLength(50, ErrorMessage = "First name cannot exceed 50 characters.")]
-        public string? FirstName { get; set; }
+        //[StringLength(50, ErrorMessage = "First name cannot exceed 50 characters.")]
+        //public string? FirstName { get; set; }
 
-        [StringLength(50, ErrorMessage = "Last name cannot exceed 50 characters.")]
-        public string? LastName { get; set; }
+        //[StringLength(50, ErrorMessage = "Last name cannot exceed 50 characters.")]
+        //public string? LastName { get; set; }
 
-        [Url(ErrorMessage = "Invalid URL format for avatar.")]
-        [StringLength(500, ErrorMessage = "Avatar URL cannot exceed 500 characters.")]
-        public string? AvatarUrl { get; set; }
+        //[Url(ErrorMessage = "Invalid URL format for avatar.")]
+        //[StringLength(500, ErrorMessage = "Avatar URL cannot exceed 500 characters.")]
+        //public string? AvatarUrl { get; set; }
 
         public int? RoleId { get; set; }
     }

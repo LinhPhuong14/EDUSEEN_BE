@@ -18,7 +18,7 @@ namespace Sep490_Eduseen_BE.Services
             _userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
         }
 
-        public async Task<ServiceResponse<bool>> UpdateUserAsync(int id, UpdateUserDTO updateUserDto, CancellationToken cancellationToken = default)
+        public async Task<ServiceResponse<bool>> UpdateUserAsync(int id, UpdateUserDTO UpdateUserDTO, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -29,7 +29,7 @@ namespace Sep490_Eduseen_BE.Services
                     {
                         Success = false,
                         StatusCode = 400,
-                        ErrorMessage = "Admins cannot update their own account via this endpoint."
+                        ErrorMessage = "Admins cannot update their own role via this endpoint."
                     };
                 }
 
@@ -44,23 +44,19 @@ namespace Sep490_Eduseen_BE.Services
                     };
                 }
 
-                if (string.IsNullOrEmpty(updateUserDto.Username) && string.IsNullOrEmpty(updateUserDto.Email))
+                // Validate chỉ được phép cập nhật role
+                if (!UpdateUserDTO.RoleId.HasValue)
                 {
                     return new ServiceResponse<bool>
                     {
                         Success = false,
                         StatusCode = 400,
-                        ErrorMessage = "Username or Email must be provided."
+                        ErrorMessage = "RoleId is required."
                     };
                 }
 
-                // Update fields
-                user.Username = updateUserDto.Username ?? user.Username;
-                user.Email = updateUserDto.Email ?? user.Email;
-                user.FirstName = updateUserDto.FirstName ?? user.FirstName;
-                user.LastName = updateUserDto.LastName ?? user.LastName;
-                user.AvatarUrl = updateUserDto.AvatarUrl ?? user.AvatarUrl;
-                user.RoleId = updateUserDto.RoleId ?? user.RoleId;
+                // Chỉ cập nhật role
+                user.RoleId = UpdateUserDTO.RoleId.Value;
                 user.UpdatedAt = DateTime.UtcNow;
 
                 await _userRepository.UpdateAsync(user, cancellationToken);
@@ -86,10 +82,11 @@ namespace Sep490_Eduseen_BE.Services
                 {
                     Success = false,
                     StatusCode = 500,
-                    ErrorMessage = "An error occurred while updating the user."
+                    ErrorMessage = "An error occurred while updating the user role."
                 };
             }
         }
+
 
         public async Task<ServiceResponse<bool>> ActivateUserAsync(int id, CancellationToken cancellationToken = default)
         {
