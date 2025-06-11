@@ -1,11 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Sep490_Eduseen_BE.Dtos;
 using Sep490_Eduseen_BE.Models;
-using Swashbuckle.AspNetCore.Annotations;
-using Swashbuckle.AspNetCore.Annotations;
-
-namespace Sep490_Eduseen_BE.Controllers;
+using Sep490_Eduseen_BE.Dtos;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -22,14 +18,13 @@ public class SubmissionController : ControllerBase
 
     [HttpPost("upload")]
     [Consumes("multipart/form-data")]
-    [SwaggerOperation(Summary = "Upload a submission with files")]
-    public async Task<IActionResult> UploadSubmission([FromForm] SubmissionUploadDto request)
+    public async Task<IActionResult> UploadSubmission([FromForm] UploadRequestDTO request)
     {
         var previousAttempts = await _context.Submissions
             .Where(s => s.AssignmentId == request.AssignmentId && s.StudentId == request.StudentId)
             .ToListAsync();
 
-        var attemptNumber = previousAttempts.Count + 1;
+        int attemptNumber = previousAttempts.Count + 1;
 
         var submission = new Submission
         {
@@ -38,26 +33,26 @@ public class SubmissionController : ControllerBase
             AttemptNumber = attemptNumber,
             SubmittedAt = DateTime.UtcNow,
             SubmissionContent = request.SubmissionContent,
+            Grade = null,
+            Feedback = null,
             SubmissionFiles = new List<SubmissionFile>()
         };
 
-        var uploadPath = Path.Combine(_env.ContentRootPath, "Uploads");
+        string uploadPath = Path.Combine(_env.ContentRootPath, "Uploads");
         if (!Directory.Exists(uploadPath)) Directory.CreateDirectory(uploadPath);
 
         foreach (var file in request.Files)
         {
-            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-            var filePath = Path.Combine(uploadPath, fileName);
+            var uniqueFileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
+            var fullPath = Path.Combine(uploadPath, uniqueFileName);
 
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
+            using var stream = new FileStream(fullPath, FileMode.Create);
+            await file.CopyToAsync(stream);
 
             submission.SubmissionFiles.Add(new SubmissionFile
             {
-                FileUrl = $"/uploads/{fileName}",
-                FileName = file.FileName
+                FileName = file.FileName,
+                FileUrl = $"/uploads/{uniqueFileName}"
             });
         }
 
@@ -66,28 +61,10 @@ public class SubmissionController : ControllerBase
 
         return Ok(new
         {
-            message = "Submission uploaded successfully",
+            message = "Bài tập đã được nộp thành công",
             submissionId = submission.SubmissionId,
             attemptNumber = submission.AttemptNumber
         });
     }
 
-    [HttpGet("by-student-assignment")]
-    public async Task<IActionResult> GetSubmissionByAssignmentAndStudent(int assignmentId, int studentId)
-    {
-        var submission = await _context.Submissions
-            .Include(s => s.SubmissionFiles)
-            .Include(s => s.Assignment)
-            .Include(s => s.Student)
-            .Where(s => s.AssignmentId == assignmentId && s.StudentId == studentId)
-            .OrderByDescending(s => s.AttemptNumber)
-            .FirstOrDefaultAsync();
-
-        if (submission == null)
-        {
-            return NotFound("No submission found for this assignment and student.");
-        }
-
-        return Ok(submission);
-    }
 }
