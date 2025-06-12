@@ -43,15 +43,10 @@ namespace Sep490_Eduseen_BE
             app.MapControllers();
             app.UseCorsPolicy(builder.Environment);
             app.UseSwaggerServices(builder.Environment);
+            app.UseStaticUploads(builder.Environment);
             app.Run();
 
-            // Upload file
-            app.UseStaticFiles(new StaticFileOptions
-            {
-                FileProvider = new PhysicalFileProvider(
-        Path.Combine(builder.Environment.ContentRootPath, "Uploads")),
-                RequestPath = "/uploads"
-            });
+
         }
 
     }

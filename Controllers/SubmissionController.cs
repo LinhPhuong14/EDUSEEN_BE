@@ -67,4 +67,33 @@ public class SubmissionController : ControllerBase
         });
     }
 
+    [HttpGet("status")]
+    public async Task<IActionResult> GetSubmissionStatus(int assignmentId, int studentId)
+    {
+        var latestSubmission = await _context.Submissions
+            .Where(s => s.AssignmentId == assignmentId && s.StudentId == studentId)
+            .OrderByDescending(s => s.AttemptNumber)
+            .FirstOrDefaultAsync();
+
+        if (latestSubmission == null)
+        {
+            return Ok(new
+            {
+                Status = "Chưa nộp",
+                Grade = (decimal?)null,
+                SubmittedAt = (DateTime?)null
+            });
+        }
+
+        var status = latestSubmission.Grade.HasValue ? "Đã chấm điểm" : "Đã nộp";
+
+        return Ok(new
+        {
+            Status = status,
+            Grade = latestSubmission.Grade,
+            SubmittedAt = latestSubmission.SubmittedAt
+        });
+    }
+
+
 }
