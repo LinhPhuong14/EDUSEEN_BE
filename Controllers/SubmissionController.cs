@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Sep490_Eduseen_BE.Models;
 using Sep490_Eduseen_BE.Dtos;
+using System.IO;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -95,5 +96,61 @@ public class SubmissionController : ControllerBase
         });
     }
 
+    [HttpDelete("/api/submissions/{submissionId}")]
+    public async Task<IActionResult> DeleteSubmission(int submissionId)
+    {
+        var submission = await _context.Submissions
+            .Include(s => s.SubmissionFiles)
+            .FirstOrDefaultAsync(s => s.SubmissionId == submissionId);
 
+        if (submission == null)
+            return NotFound("Không tìm thấy bài nộp");
+
+        // Xóa file vật lý
+        foreach (var file in submission.SubmissionFiles)
+        {
+            var filePath = Path.Combine(_env.ContentRootPath, "Uploads", Path.GetFileName(file.FileUrl));
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+        }
+
+        _context.Submissions.Remove(submission);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Đã xóa bài nộp thành công" });
+    }
+
+    //  NEW: Get assignment detail by student & assignment
+    [HttpGet("assignment-detail/{assignmentId}/student/{studentId}")]
+    public async Task<IActionResult> GetAssignmentDetailForStudent(int assignmentId, int studentId)
+    {
+        var assignment = await _context.Assignments
+            .Include(a => a.CreatedByNavigation)
+            .FirstOrDefaultAsync(a => a.AssignmentId == assignmentId);
+
+        if (assignment == null)
+            return NotFound("Không tìm thấy bài tập");
+
+        var latestSubmission = await _context.Submissions
+            .Where(s => s.AssignmentId == assignmentId && s.StudentId == studentId)
+            .OrderByDescending(s => s.AttemptNumber)
+            .FirstOrDefaultAsync();
+
+        var dto = new AssignmentDetailDto
+        {
+            AssignmentId = assignment.AssignmentId,
+            Title = assignment.Title,
+            Description = assignment.Description,
+            DueDate = assignment.DueDate,
+            CreatedByName = $"{assignment.CreatedByNavigation.FirstName} {assignment.CreatedByNavigation.LastName}",
+            CreatedAt = assignment.CreatedAt,
+            SubmissionStatus = latestSubmission == null ? "Chưa nộp" : (latestSubmission.Grade.HasValue ? "Đã chấm điểm" : "Đã nộp"),
+            SubmittedAt = latestSubmission?.SubmittedAt,
+            Grade = latestSubmission?.Grade
+        };
+
+        return Ok(dto);
+    }
 }

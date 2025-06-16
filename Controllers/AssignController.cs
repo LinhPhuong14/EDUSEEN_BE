@@ -46,4 +46,26 @@ public class AssignmentsController : ControllerBase
 
         return Ok(dto);
     }
+
+    [HttpGet("student/{studentId}")]
+    public async Task<IActionResult> GetAssignmentsForStudent(int studentId)
+    {
+        var assignments = await _context.Assignments
+            .Include(a => a.Submissions)
+            .Include(a => a.Course)
+            .OrderByDescending(a => a.DueDate)
+            .Select(a => new
+            {
+                a.AssignmentId,
+                a.Title,
+                a.Description,
+                a.DueDate,
+                CourseTitle = a.Course.Title,
+                IsSubmitted = a.Submissions.Any(s => s.StudentId == studentId)
+            })
+            .ToListAsync();
+
+        return Ok(assignments);
+    }
+
 }
