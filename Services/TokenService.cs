@@ -209,10 +209,9 @@ namespace Sep490_Eduseen_BE.Services
                 new(ClaimTypes.NameIdentifier, user.UserId.ToString())
             };
 
-            var role = await _userRepository.GetByIdAsync(user.UserId);
-            if (role != null && role.Role != null)
+            if (user.Role != null)
             {
-                claims.Add(new Claim(ClaimTypes.Role, role.Role.RoleName));
+                claims.Add(new Claim(ClaimTypes.Role, user.Role.RoleName));
             }
 
             return claims;
