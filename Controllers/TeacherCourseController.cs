@@ -13,8 +13,12 @@ namespace Sep490_Eduseen_BE.Controllers
     {
 
         private readonly ICourseService _service;
-        public TeacherCourseController(ICourseService service) => _service = service;
-
+        private readonly IReviewService _rvservice;
+        public TeacherCourseController(IReviewService rvservice, ICourseService service)
+        {
+            _service = service;
+            _rvservice = rvservice;
+        }
         [HttpGet("{courseId}")]
         public async Task<IActionResult> GetCourse(int courseId)
         {
@@ -57,6 +61,23 @@ namespace Sep490_Eduseen_BE.Controllers
                 throw new UnauthorizedAccessException("No NameIdentifier claim found in token.");
             return int.Parse(claim.Value);
         }
+
+        [HttpGet("{courseId}/analysis")]
+        public async Task<IActionResult> GetCourseAnalysis(int courseId)
+        {
+            var teacherId = GetTeacherId();
+            var result = await _service.GetCourseAnalysisAsync(courseId, teacherId);
+            return Ok(result);
+        }
+
+        [HttpPost("review/{reviewId}/response")]
+        public async Task<IActionResult> RespondToReview(int reviewId, [FromBody] RespondReviewDTO dto)
+        {
+            var teacherId = GetTeacherId();
+            var response = await _rvservice.RespondToReviewAsync(reviewId, teacherId, dto.ResponseText);
+            return Ok(response);
+        }
+
 
     }
 }

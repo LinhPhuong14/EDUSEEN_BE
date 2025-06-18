@@ -165,6 +165,55 @@ namespace Sep490_Eduseen_BE.Services
             return true;
         }
 
+        public async Task<CourseAnalysisDto> GetCourseAnalysisAsync(int courseId, int teacherId)
+        {
+            // Đảm bảo course thuộc về teacher này
+            var isOwner = await _context.Courses.AnyAsync(c => c.CourseId == courseId && c.TeacherId == teacherId);
+            if (!isOwner)
+                throw new UnauthorizedAccessException("Bạn không có quyền xem phân tích khóa học này.");
+
+            var totalEnrollments = await _context.Enrollments.CountAsync(e => e.CourseId == courseId);
+
+            double completionRate = 0.0;
+            if (totalEnrollments > 0)
+            {
+                var completed = await _context.Enrollments.CountAsync(e => e.CourseId == courseId && e.Status == "completed");
+                completionRate = (double)completed / totalEnrollments;
+            }
+
+            var averageRating = await _context.Reviews
+                .Where(r => r.CourseId == courseId)
+                .AverageAsync(r => (double?)r.Rating) ?? 0.0;
+
+            var studentIds = await _context.Enrollments
+                .Where(e => e.CourseId == courseId)
+                .Select(e => e.StudentId)
+                .ToListAsync();
+
+            double avgCompletedLectures = 0.0;
+            if (studentIds.Count > 0)
+            {
+                var completedLectures = await _context.UserLectureProgresses 
+                    .Where(p => studentIds.Contains(p.UserId) && p.IsCompleted == true)
+                    .GroupBy(p => p.UserId)
+                    .Select(g => g.Count())
+                    .ToListAsync();
+
+                if (completedLectures.Count > 0)
+                    avgCompletedLectures = completedLectures.Average();
+            }
+
+            return new CourseAnalysisDto
+            {
+                CourseId = courseId,
+                TotalEnrollments = totalEnrollments,
+                CompletionRate = completionRate,
+                AverageRating = averageRating,
+                AvgCompletedLectures = avgCompletedLectures
+            };
+        }
+
+
         private static CourseDto ToDto(Course course) => new()
         {
             CourseId = course.CourseId,

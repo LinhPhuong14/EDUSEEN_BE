@@ -84,4 +84,14 @@
         public int? Duration { get; set; }
         public int Order { get; set; }
     }
+
+    public class CourseAnalysisDto
+    {
+        public int CourseId { get; set; }
+        public int TotalEnrollments { get; set; }
+        public double CompletionRate { get; set; }
+        public double AverageRating { get; set; }
+        public double AvgCompletedLectures { get; set; }
+    }
+
 }
