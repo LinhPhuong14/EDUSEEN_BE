@@ -106,7 +106,7 @@ public class SubmissionController : ControllerBase
         if (submission == null)
             return NotFound("Không tìm thấy bài nộp");
 
-        // Xóa file vật lý
+        // delete file 
         foreach (var file in submission.SubmissionFiles)
         {
             var filePath = Path.Combine(_env.ContentRootPath, "Uploads", Path.GetFileName(file.FileUrl));
