@@ -96,31 +96,39 @@ public class SubmissionController : ControllerBase
         });
     }
 
-    [HttpDelete("/api/submissions/{submissionId}")]
+    [HttpDelete("{submissionId}")]
     public async Task<IActionResult> DeleteSubmission(int submissionId)
     {
-        var submission = await _context.Submissions
-            .Include(s => s.SubmissionFiles)
-            .FirstOrDefaultAsync(s => s.SubmissionId == submissionId);
-
-        if (submission == null)
-            return NotFound("Không tìm thấy bài nộp");
-
-        // delete file 
-        foreach (var file in submission.SubmissionFiles)
+        try
         {
-            var filePath = Path.Combine(_env.ContentRootPath, "Uploads", Path.GetFileName(file.FileUrl));
-            if (System.IO.File.Exists(filePath))
+            var submission = await _context.Submissions
+                .Include(s => s.SubmissionFiles)
+                .FirstOrDefaultAsync(s => s.SubmissionId == submissionId);
+
+            if (submission == null)
+                return NotFound("Không tìm thấy bài nộp");
+
+            foreach (var file in submission.SubmissionFiles ?? new List<SubmissionFile>())
             {
-                System.IO.File.Delete(filePath);
+                var filePath = Path.Combine(_env.ContentRootPath, "Uploads", Path.GetFileName(file.FileUrl));
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath);
+                }
             }
+
+            _context.Submissions.Remove(submission);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Đã xóa bài nộp thành công" });
         }
-
-        _context.Submissions.Remove(submission);
-        await _context.SaveChangesAsync();
-
-        return Ok(new { message = "Đã xóa bài nộp thành công" });
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[DeleteSubmission] Error: {ex.Message}");
+            return StatusCode(500, new { error = "Lỗi máy chủ", details = ex.Message });
+        }
     }
+
 
     //  NEW: Get assignment detail by student & assignment
     [HttpGet("assignment-detail/{assignmentId}/student/{studentId}")]
