@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Sep490_Eduseen_BE.Extensions;
+using Sep490_Eduseen_BE.Hubs;
 using Sep490_Eduseen_BE.Models;
 using Sep490_Eduseen_BE.Profiles;
 using Sep490_Eduseen_BE.Repositories;
@@ -31,6 +32,7 @@ namespace Sep490_Eduseen_BE
             builder.Services.AddApplicationServices();
             builder.Services.AddMemoryCache();
             builder.Services.AddAuthorization();
+            builder.Services.AddSignalR();
 
 
             var app = builder.Build();
@@ -44,6 +46,7 @@ namespace Sep490_Eduseen_BE
             app.UseCorsPolicy(builder.Environment);
             app.UseSwaggerServices(builder.Environment);
             app.UseStaticUploads(builder.Environment);
+            app.MapHub<SubmissionHub>("/hubs/submission");
             app.Run();
 
 

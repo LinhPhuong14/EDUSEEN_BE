@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using Sep490_Eduseen_BE.Models;
 using Sep490_Eduseen_BE.Dtos;
+using Microsoft.AspNetCore.SignalR;
+using Sep490_Eduseen_BE.Hubs;
 using System.IO;
 
 [ApiController]
@@ -10,11 +12,16 @@ public class SubmissionController : ControllerBase
 {
     private readonly Sep490EduseenContext _context;
     private readonly IWebHostEnvironment _env;
+    private readonly IHubContext<SubmissionHub> _hubContext;
 
-    public SubmissionController(Sep490EduseenContext context, IWebHostEnvironment env)
+    public SubmissionController(
+        Sep490EduseenContext context,
+        IWebHostEnvironment env,
+        IHubContext<SubmissionHub> hubContext)
     {
         _context = context;
         _env = env;
+        _hubContext = hubContext;
     }
 
     [HttpPost("upload")]
@@ -120,6 +127,14 @@ public class SubmissionController : ControllerBase
             _context.Submissions.Remove(submission);
             await _context.SaveChangesAsync();
 
+            // 🔔 Gửi sự kiện SignalR
+            await _hubContext.Clients.All.SendAsync("SubmissionDeleted", new
+            {
+                submissionId = submission.SubmissionId,
+                studentId = submission.StudentId,
+                message = "Bài nộp đã bị xóa thành công"
+            });
+
             return Ok(new { message = "Đã xóa bài nộp thành công" });
         }
         catch (Exception ex)
@@ -129,8 +144,6 @@ public class SubmissionController : ControllerBase
         }
     }
 
-
-    //  NEW: Get assignment detail by student & assignment
     [HttpGet("assignment-detail/{assignmentId}/student/{studentId}")]
     public async Task<IActionResult> GetAssignmentDetailForStudent(int assignmentId, int studentId)
     {
