@@ -221,5 +221,85 @@ namespace Sep490_Eduseen_BE.Services
                 };
             }
         }
+        public async Task<ServiceResponse<IEnumerable<UserListDto>>> GetAllUsersAsync(CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var users = await _userRepository.GetAllUsersWithRoleAsync(cancellationToken);
+
+                var userDtos = users.Select(u => new UserListDto
+                {
+                    UserId = u.UserId,
+                    Username = u.Username,
+                    Email = u.Email,
+                    FirstName = u.FirstName,
+                    LastName = u.LastName,
+                    IsActive = u.IsActive,
+                    RoleName = u.Role?.RoleName ?? "Unknown" // Lấy tên role
+                }).ToList();
+
+                return new ServiceResponse<IEnumerable<UserListDto>>
+                {
+                    Success = true,
+                    Data = userDtos
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResponse<IEnumerable<UserListDto>>
+                {
+                    Success = false,
+                    StatusCode = 500,
+                    ErrorMessage = "An error occurred while retrieving users."
+                };
+            }
+        }
+
+        public async Task<ServiceResponse<UserDetailDto>> GetUserByIdAsync(int id, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var user = await _userRepository.GetUserByIdWithRoleAsync(id, cancellationToken);
+                if (user == null)
+                {
+                    return new ServiceResponse<UserDetailDto>
+                    {
+                        Success = false,
+                        StatusCode = 404,
+                        ErrorMessage = "User not found."
+                    };
+                }
+
+                var userDto = new UserDetailDto
+                {
+                    UserId = user.UserId,
+                    Username = user.Username,
+                    Email = user.Email,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    IsActive = user.IsActive,
+                    RoleName = user.Role?.RoleName ?? "Unknown",
+                    CreatedAt = user.CreatedAt,
+                    UpdatedAt = user.UpdatedAt,
+                    AvatarUrl = user.AvatarUrl
+                };
+
+                return new ServiceResponse<UserDetailDto>
+                {
+                    Success = true,
+                    Data = userDto
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResponse<UserDetailDto>
+                {
+                    Success = false,
+                    StatusCode = 500,
+                    ErrorMessage = "An error occurred while retrieving the user."
+                };
+            }
+        }
+
     }
 }

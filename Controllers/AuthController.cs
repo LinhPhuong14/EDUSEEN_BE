@@ -95,5 +95,36 @@ namespace Sep490_Eduseen_BE.Controllers
             _logger.LogInformation("Logout successful for user: {UserId}", User.Identity?.Name ?? "Unknown");
             return Ok(new { Message = "Logged out successfully." });
         }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDTO dto)
+        {
+            var result = await _authService.SendPasswordResetAsync(dto);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDTO dto)
+        {
+            var result = await _authService.ResetPasswordAsync(dto);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        [Authorize]
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDTO dto)
+        {
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return Unauthorized("User not authenticated.");
+            int userId = int.Parse(userIdClaim.Value);
+
+            var result = await _authService.ChangePasswordAsync(userId, dto);
+            if (!result.Success)
+                return BadRequest(result.Message);
+            return Ok(result.Message);
+        }
+
+
     }
 }

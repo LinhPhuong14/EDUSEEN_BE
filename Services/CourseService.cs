@@ -3,6 +3,7 @@ using Sep490_Eduseen_BE.Repositories.impl;
 using Sep490_Eduseen_BE.Repositories;
 using Sep490_Eduseen_BE.Dtos;
 using Microsoft.EntityFrameworkCore;
+using Sep490_Eduseen_BE.Dtos.Teacher;
 
 namespace Sep490_Eduseen_BE.Services
 {
@@ -246,5 +247,74 @@ namespace Sep490_Eduseen_BE.Services
                         }).ToList()
                 }).ToList()
         };
+        public async Task<HomeworkAnalysisDto> GetHomeworkAnalysisAsync(int assignmentId, int teacherId)
+        {
+            var assignment = await _context.Assignments
+                .Include(a => a.Course)
+                    .ThenInclude(c => c.Enrollments)
+                        .ThenInclude(e => e.Student)
+                .FirstOrDefaultAsync(a => a.AssignmentId == assignmentId);
+
+            if (assignment == null) throw new Exception("Assignment not found");
+            if (assignment.Course.TeacherId != teacherId)
+                throw new UnauthorizedAccessException("Bạn không có quyền xem phân tích bài tập này.");
+
+            var totalAssigned = assignment.Course.Enrollments.Count;
+
+            var submissions = await _context.Submissions
+                .Where(s => s.AssignmentId == assignmentId)
+                .GroupBy(s => s.StudentId)
+                .Select(g => g.OrderByDescending(s => s.AttemptNumber).FirstOrDefault())
+                .ToListAsync();
+
+            var totalSubmitted = submissions.Count;
+
+            var lateSubmissionCount = submissions.Count(s => s.SubmittedAt != null && assignment.DueDate != null && s.SubmittedAt > assignment.DueDate);
+
+            var gradedCount = submissions.Count(s => s.Grade != null);
+
+            double completionRate = totalAssigned > 0 ? (double)totalSubmitted / totalAssigned : 0;
+            double lateSubmissionRate = totalAssigned > 0 ? (double)lateSubmissionCount / totalAssigned : 0;
+            double? averageGrade = submissions.Where(s => s.Grade != null).Any()
+                ? (double?)submissions.Where(s => s.Grade != null).Average(s => (double)s.Grade!)
+                : null;
+
+            var gradeDistribution = submissions
+                .Where(s => s.Grade != null)
+                .GroupBy(s =>
+                {
+                    var grade = (double)s.Grade!;
+                    if (grade < 6) return "0-5";
+                    if (grade < 8) return "6-7";
+                    return "8-10";
+                })
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            var submittedStudentIds = submissions.Select(s => s.StudentId).ToHashSet();
+            var notSubmittedStudents = assignment.Course.Enrollments
+                .Where(e => !submittedStudentIds.Contains(e.StudentId))
+                .Select(e => new StudentInfoDto
+                {
+                    StudentId = e.StudentId,
+                    Name = (e.Student.FirstName ?? "") + " " + (e.Student.LastName ?? ""),
+                    Email = e.Student.Email
+                }).ToList();
+
+            return new HomeworkAnalysisDto
+            {
+                AssignmentId = assignmentId,
+                TotalAssigned = totalAssigned,
+                TotalSubmitted = totalSubmitted,
+                CompletionRate = completionRate,
+                LateSubmissionCount = lateSubmissionCount,
+                LateSubmissionRate = lateSubmissionRate,
+                AverageGrade = averageGrade,
+                GradeDistribution = gradeDistribution,
+                GradedCount = gradedCount,
+                NotSubmittedStudents = notSubmittedStudents
+            };
+        }
+
     }
+
 }

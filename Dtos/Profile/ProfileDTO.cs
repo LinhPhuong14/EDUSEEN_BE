@@ -54,4 +54,22 @@ namespace Sep490_Eduseen_BE.Dtos
         public string? ErrorMessage { get; set; }
         public int StatusCode { get; set; }
     }
+    public class UserListDto
+    {
+        public int UserId { get; set; }
+        public string Username { get; set; } = null!;
+        public string Email { get; set; } = null!;
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public bool? IsActive { get; set; }
+        public string RoleName { get; set; } = null!;
+    }
+
+    public class UserDetailDto : UserListDto
+    {
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+        public string? AvatarUrl { get; set; }
+    }
+
 }

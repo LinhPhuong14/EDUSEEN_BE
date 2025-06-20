@@ -79,5 +79,27 @@ namespace Sep490_Eduseen_BE.Controllers
             _logger.LogInformation("Deactivate user successful for user ID: {UserId}", id);
             return Ok(new { Message = "User deactivated successfully." });
         }
+        [HttpGet]
+        public async Task<IActionResult> GetAllUsersAsync(CancellationToken cancellationToken)
+        {
+            var response = await _userService.GetAllUsersAsync(cancellationToken);
+            if (!response.Success)
+            {
+                return StatusCode(response.StatusCode, new { Error = response.ErrorMessage });
+            }
+            return Ok(response.Data);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetUserByIdAsync(int id, CancellationToken cancellationToken)
+        {
+            var response = await _userService.GetUserByIdAsync(id, cancellationToken);
+            if (!response.Success)
+            {
+                return StatusCode(response.StatusCode, new { Error = response.ErrorMessage });
+            }
+            return Ok(response.Data);
+        }
+
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Sep490_Eduseen_BE.Dtos;
+using Sep490_Eduseen_BE.Dtos.Teacher;
 
 namespace Sep490_Eduseen_BE.Repositories
 {
@@ -9,6 +10,6 @@ namespace Sep490_Eduseen_BE.Repositories
         Task<bool> UpdateCourseAsync(int courseId, UpdateCourseDto dto, int teacherId);
         Task<bool> DeleteCourseAsync(int courseId, int teacherId);
         Task<CourseAnalysisDto> GetCourseAnalysisAsync(int courseId, int teacherId);
-
+        Task<HomeworkAnalysisDto> GetHomeworkAnalysisAsync(int assignmentId, int teacherId);
     }
 }
