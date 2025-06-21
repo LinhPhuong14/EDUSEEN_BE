@@ -47,7 +47,7 @@ public class AssignmentsController : ControllerBase
         return Ok(dto);
     }
 
-    [HttpGet("student/{studentId}")]
+    [HttpGet("student/{studentId}/assignments")]
     public async Task<IActionResult> GetAssignmentsForStudent(int studentId)
     {
         var assignments = await _context.Assignments

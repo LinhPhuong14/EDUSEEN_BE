@@ -174,4 +174,132 @@ public class SubmissionController : ControllerBase
 
         return Ok(dto);
     }
+
+    [HttpPut("edit")]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> EditSubmission([FromForm] UploadRequestDTO request)
+    {
+        var assignment = await _context.Assignments
+            .FirstOrDefaultAsync(a => a.AssignmentId == request.AssignmentId);
+
+        if (assignment == null)
+            return NotFound("Không tìm thấy bài tập.");
+
+        if (assignment.DueDate < DateTime.UtcNow)
+            return BadRequest("Đã quá hạn nộp, không thể chỉnh sửa bài nộp.");
+
+        var submission = await _context.Submissions
+            .Include(s => s.SubmissionFiles)
+            .FirstOrDefaultAsync(s =>
+                s.AssignmentId == request.AssignmentId &&
+                s.StudentId == request.StudentId);
+
+        if (submission == null)
+            return NotFound("Chưa có bài nộp để chỉnh sửa.");
+
+        // Cập nhật nội dung bài nộp nếu có
+        if (!string.IsNullOrWhiteSpace(request.SubmissionContent))
+        {
+            submission.SubmissionContent = request.SubmissionContent;
+        }
+
+        // Xóa file cũ nếu có file mới
+        if (request.Files != null && request.Files.Count > 0)
+        {
+            foreach (var file in submission.SubmissionFiles)
+            {
+                var filePath = Path.Combine(_env.ContentRootPath, "Uploads", Path.GetFileName(file.FileUrl));
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath);
+                }
+            }
+
+            _context.SubmissionFiles.RemoveRange(submission.SubmissionFiles);
+            submission.SubmissionFiles = new List<SubmissionFile>();
+
+            string uploadPath = Path.Combine(_env.ContentRootPath, "Uploads");
+            if (!Directory.Exists(uploadPath)) Directory.CreateDirectory(uploadPath);
+
+            foreach (var file in request.Files)
+            {
+                var uniqueFileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
+                var fullPath = Path.Combine(uploadPath, uniqueFileName);
+
+                using var stream = new FileStream(fullPath, FileMode.Create);
+                await file.CopyToAsync(stream);
+
+                submission.SubmissionFiles.Add(new SubmissionFile
+                {
+                    FileName = file.FileName,
+                    FileUrl = $"/uploads/{uniqueFileName}"
+                });
+            }
+        }
+
+        submission.SubmittedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Chỉnh sửa bài nộp thành công." });
+    }
+
+    [HttpPost("resubmit")]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> ResubmitHomework([FromForm] UploadRequestDTO request)
+    {
+        var assignment = await _context.Assignments.FindAsync(request.AssignmentId);
+        if (assignment == null)
+            return NotFound("Không tìm thấy bài tập.");
+
+        // Optionally kiểm tra deadline:
+        // if (assignment.DueDate < DateTime.UtcNow) return BadRequest("Đã quá hạn nộp.");
+
+        // Tìm số lần đã nộp trước đó
+        var previousAttempts = await _context.Submissions
+            .Where(s => s.AssignmentId == request.AssignmentId && s.StudentId == request.StudentId)
+            .ToListAsync();
+
+        int newAttempt = previousAttempts.Count + 1;
+
+        var newSubmission = new Submission
+        {
+            AssignmentId = request.AssignmentId,
+            StudentId = request.StudentId,
+            AttemptNumber = newAttempt,
+            SubmittedAt = DateTime.UtcNow,
+            SubmissionContent = request.SubmissionContent,
+            SubmissionFiles = new List<SubmissionFile>()
+        };
+
+        string uploadPath = Path.Combine(_env.ContentRootPath, "Uploads");
+        if (!Directory.Exists(uploadPath)) Directory.CreateDirectory(uploadPath);
+
+        foreach (var file in request.Files)
+        {
+            var uniqueFileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
+            var filePath = Path.Combine(uploadPath, uniqueFileName);
+
+            using var stream = new FileStream(filePath, FileMode.Create);
+            await file.CopyToAsync(stream);
+
+            newSubmission.SubmissionFiles.Add(new SubmissionFile
+            {
+                FileName = file.FileName,
+                FileUrl = $"/uploads/{uniqueFileName}"
+            });
+        }
+
+        _context.Submissions.Add(newSubmission);
+        await _context.SaveChangesAsync();
+
+        return Ok(new
+        {
+            message = $"Nộp lại bài thành công (Lần {newAttempt})",
+            submissionId = newSubmission.SubmissionId,
+            attemptNumber = newSubmission.AttemptNumber
+        });
+    }
+
+
 }
