@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 namespace Sep490_Eduseen_BE.Models;
 
-public partial class PasswordResetToken
+public partial class EmailConfirmationToken
 {
-    public int TokenId { get; set; }
+    public int EmailConfirmId { get; set; }
 
     public int UserId { get; set; }
 
-    public string? Token { get; set; }
+    public string Token { get; set; } = null!;
 
     public DateTime ExpiresAt { get; set; }
 

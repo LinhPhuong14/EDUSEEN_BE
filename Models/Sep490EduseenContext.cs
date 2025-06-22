@@ -29,6 +29,8 @@ public partial class Sep490EduseenContext : DbContext
 
     public virtual DbSet<Course> Courses { get; set; }
 
+    public virtual DbSet<EmailConfirmationToken> EmailConfirmationTokens { get; set; }
+
     public virtual DbSet<Enrollment> Enrollments { get; set; }
 
     public virtual DbSet<Favorite> Favorites { get; set; }
@@ -36,6 +38,8 @@ public partial class Sep490EduseenContext : DbContext
     public virtual DbSet<Lecture> Lectures { get; set; }
 
     public virtual DbSet<Notification> Notifications { get; set; }
+
+    public virtual DbSet<Otp> Otps { get; set; }
 
     public virtual DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 
@@ -229,6 +233,25 @@ public partial class Sep490EduseenContext : DbContext
                 .HasConstraintName("FK__Courses__teacher__4AB81AF0");
         });
 
+        modelBuilder.Entity<EmailConfirmationToken>(entity =>
+        {
+            entity.HasKey(e => e.EmailConfirmId);
+
+            entity.ToTable("EmailConfirmationToken");
+
+            entity.Property(e => e.EmailConfirmId).HasColumnName("email_confirm_id");
+            entity.Property(e => e.ExpiresAt).HasColumnName("expires_at");
+            entity.Property(e => e.Token)
+                .HasMaxLength(255)
+                .HasColumnName("token");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+
+            entity.HasOne(d => d.User).WithMany(p => p.EmailConfirmationTokens)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_EmailConfirmationToken_Users");
+        });
+
         modelBuilder.Entity<Enrollment>(entity =>
         {
             entity.HasKey(e => e.EnrollmentId).HasName("PK__Enrollme__6D24AA7ABE2E1AC6");
@@ -318,6 +341,34 @@ public partial class Sep490EduseenContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Notificat__user___07C12930");
+        });
+
+        modelBuilder.Entity<Otp>(entity =>
+        {
+            entity.HasKey(e => e.OtpId).HasName("PK__Otps__AEE354356962EF9E");
+
+            entity.Property(e => e.OtpId).HasColumnName("otp_id");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnName("created_at");
+            entity.Property(e => e.Email)
+                .HasMaxLength(100)
+                .HasDefaultValue("")
+                .HasColumnName("email");
+            entity.Property(e => e.ExpiresAt).HasColumnName("expires_at");
+            entity.Property(e => e.IsUsed)
+                .HasDefaultValue(false)
+                .HasColumnName("is_used");
+            entity.Property(e => e.OtpCode)
+                .HasMaxLength(6)
+                .IsUnicode(false)
+                .HasDefaultValue("")
+                .HasColumnName("otp_code");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Otps)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK__Otps__user_id__43D61337");
         });
 
         modelBuilder.Entity<PasswordResetToken>(entity =>
@@ -532,6 +583,11 @@ public partial class Sep490EduseenContext : DbContext
             entity.Property(e => e.PasswordHash)
                 .HasMaxLength(255)
                 .HasColumnName("password_hash");
+            entity.Property(e => e.RefreshToken)
+                .HasMaxLength(255)
+                .IsFixedLength()
+                .HasColumnName("refresh_token");
+            entity.Property(e => e.RefreshTokenExpiresAt).HasColumnName("refresh_token_expires_at");
             entity.Property(e => e.RoleId).HasColumnName("role_id");
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("(getdate())")
