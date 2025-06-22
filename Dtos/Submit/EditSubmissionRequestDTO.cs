@@ -1,4 +1,5 @@
-﻿public class EditSubmissionRequestDTO
+﻿namespace Sep490_Eduseen_BE.Dtos;
+public class EditSubmissionRequestDTO
 {
     public int AssignmentId { get; set; }
     public int StudentId { get; set; }

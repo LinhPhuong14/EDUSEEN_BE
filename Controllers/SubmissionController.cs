@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Sep490_Eduseen_BE.Models;
-using Sep490_Eduseen_BE.Dtos;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using Sep490_Eduseen_BE.Dtos;
+using Sep490_Eduseen_BE.Dtos.Submission;
 using Sep490_Eduseen_BE.Hubs;
+using Sep490_Eduseen_BE.Models;
 using System.IO;
+using System.IO.Compression;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -103,46 +105,81 @@ public class SubmissionController : ControllerBase
         });
     }
 
+    //[HttpDelete("{submissionId}")]
+    //public async Task<IActionResult> DeleteSubmission(int submissionId)
+    //{
+    //    try
+    //    {
+    //        var submission = await _context.Submissions
+    //            .Include(s => s.SubmissionFiles)
+    //            .FirstOrDefaultAsync(s => s.SubmissionId == submissionId);
+
+    //        if (submission == null)
+    //            return NotFound("Không tìm thấy bài nộp");
+
+    //        foreach (var file in submission.SubmissionFiles ?? new List<SubmissionFile>())
+    //        {
+    //            var filePath = Path.Combine(_env.ContentRootPath, "Uploads", Path.GetFileName(file.FileUrl));
+    //            if (System.IO.File.Exists(filePath))
+    //            {
+    //                System.IO.File.Delete(filePath);
+    //            }
+    //        }
+
+    //        _context.Submissions.Remove(submission);
+    //        await _context.SaveChangesAsync();
+
+    //        // 🔔 Gửi sự kiện SignalR
+    //        await _hubContext.Clients.All.SendAsync("SubmissionDeleted", new
+    //        {
+    //            submissionId = submission.SubmissionId,
+    //            studentId = submission.StudentId,
+    //            message = "Bài nộp đã bị xóa thành công"
+    //        });
+
+    //        return Ok(new { message = "Đã xóa bài nộp thành công" });
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        Console.WriteLine($"[DeleteSubmission] Error: {ex.Message}");
+    //        return StatusCode(500, new { error = "Lỗi máy chủ", details = ex.Message });
+    //    }
+    //}
+
     [HttpDelete("{submissionId}")]
     public async Task<IActionResult> DeleteSubmission(int submissionId)
     {
-        try
+        var submission = await _context.Submissions
+            .Include(s => s.SubmissionFiles)
+            .Include(s => s.Assignment)
+            .FirstOrDefaultAsync(s => s.SubmissionId == submissionId);
+
+        if (submission == null)
+            return NotFound("Không tìm thấy bài nộp.");
+
+        if (submission.Grade.HasValue)
+            return BadRequest("Không thể xóa bài đã được chấm điểm.");
+
+        if (submission.Assignment?.DueDate != null && submission.SubmittedAt > submission.Assignment.DueDate)
+            return BadRequest("Không thể xóa bài đã quá hạn nộp.");
+
+        // Xóa file vật lý
+        foreach (var file in submission.SubmissionFiles)
         {
-            var submission = await _context.Submissions
-                .Include(s => s.SubmissionFiles)
-                .FirstOrDefaultAsync(s => s.SubmissionId == submissionId);
-
-            if (submission == null)
-                return NotFound("Không tìm thấy bài nộp");
-
-            foreach (var file in submission.SubmissionFiles ?? new List<SubmissionFile>())
+            var filePath = Path.Combine(_env.ContentRootPath, "Uploads", Path.GetFileName(file.FileUrl));
+            if (System.IO.File.Exists(filePath))
             {
-                var filePath = Path.Combine(_env.ContentRootPath, "Uploads", Path.GetFileName(file.FileUrl));
-                if (System.IO.File.Exists(filePath))
-                {
-                    System.IO.File.Delete(filePath);
-                }
+                System.IO.File.Delete(filePath);
             }
-
-            _context.Submissions.Remove(submission);
-            await _context.SaveChangesAsync();
-
-            // 🔔 Gửi sự kiện SignalR
-            await _hubContext.Clients.All.SendAsync("SubmissionDeleted", new
-            {
-                submissionId = submission.SubmissionId,
-                studentId = submission.StudentId,
-                message = "Bài nộp đã bị xóa thành công"
-            });
-
-            return Ok(new { message = "Đã xóa bài nộp thành công" });
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[DeleteSubmission] Error: {ex.Message}");
-            return StatusCode(500, new { error = "Lỗi máy chủ", details = ex.Message });
-        }
+
+        // Xóa dữ liệu khỏi DB
+        _context.Submissions.Remove(submission);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Đã xóa bài nộp thành công." });
     }
+
 
     [HttpGet("assignment-detail/{assignmentId}/student/{studentId}")]
     public async Task<IActionResult> GetAssignmentDetailForStudent(int assignmentId, int studentId)
@@ -299,6 +336,106 @@ public class SubmissionController : ControllerBase
             submissionId = newSubmission.SubmissionId,
             attemptNumber = newSubmission.AttemptNumber
         });
+    }
+
+    [HttpPost("{submissionId}/feedback")]
+    public async Task<IActionResult> SendFeedback(int submissionId, [FromBody] TeacherFeedbackDTO dto)
+    {
+        var submission = await _context.Submissions
+            .FirstOrDefaultAsync(s => s.SubmissionId == submissionId);
+
+        if (submission == null)
+            return NotFound("Không tìm thấy bài nộp");
+
+        submission.Feedback = dto.Feedback;
+        submission.Grade = dto.Grade;
+
+        // Gửi thông báo đến học sinh
+        var notification = new Notification
+        {
+            UserId = submission.StudentId,
+            Message = $"Bài nộp '{submission.SubmissionId}' đã được chấm điểm: {dto.Grade}/10",
+            CreatedAt = DateTime.UtcNow,
+            IsRead = false
+        };
+
+        _context.Notifications.Add(notification);
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Đã gửi feedback và chấm điểm thành công." });
+    }
+
+
+    [HttpPost("student/{submissionId}/feedback")]
+    public async Task<IActionResult> SubmitStudentFeedback(int submissionId, [FromBody] StudentFeedbackDTO dto)
+    {
+        var submission = await _context.Submissions.FindAsync(submissionId);
+        if (submission == null)
+            return NotFound("Không tìm thấy bài nộp");
+
+        submission.Feedback = dto.Feedback;
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Đã gửi phản hồi đến giáo viên" });
+    }
+
+    [HttpGet("assignment/{assignmentId}/submissions")]
+    public async Task<IActionResult> GetSubmissionsForAssignment(int assignmentId)
+    {
+        var submissions = await _context.Submissions
+            .Include(s => s.Student)
+            .Where(s => s.AssignmentId == assignmentId)
+            .OrderByDescending(s => s.SubmittedAt)
+            .Select(s => new SubmissionListItemDto
+            {
+                SubmissionId = s.SubmissionId,
+                StudentId = s.StudentId,
+                StudentName = s.Student.FirstName + " " + s.Student.LastName,
+                AttemptNumber = s.AttemptNumber,
+                SubmittedAt = s.SubmittedAt,
+                Grade = s.Grade,
+                Feedback = s.Feedback
+            })
+            .ToListAsync();
+
+        return Ok(submissions);
+    }
+
+    
+
+    [HttpGet("submission/{submissionId}/download")]
+    public async Task<IActionResult> DownloadSubmissionFiles(int submissionId)
+    {
+        var submission = await _context.Submissions
+            .Include(s => s.SubmissionFiles)
+            .FirstOrDefaultAsync(s => s.SubmissionId == submissionId);
+
+        if (submission == null || submission.SubmissionFiles.Count == 0)
+            return NotFound("Không tìm thấy bài nộp hoặc không có file.");
+
+        var zipFileName = $"Submission_{submissionId}.zip";
+        var zipPath = Path.Combine(Path.GetTempPath(), zipFileName);
+
+        if (System.IO.File.Exists(zipPath))
+            System.IO.File.Delete(zipPath);
+
+        using (var zip = ZipFile.Open(zipPath, ZipArchiveMode.Create))
+        {
+            foreach (var file in submission.SubmissionFiles)
+            {
+                var filePath = Path.Combine(_env.ContentRootPath, "Uploads", Path.GetFileName(file.FileUrl));
+                if (System.IO.File.Exists(filePath))
+                {
+                    zip.CreateEntryFromFile(filePath, file.FileName);
+                }
+            }
+        }
+
+        var bytes = await System.IO.File.ReadAllBytesAsync(zipPath);
+        System.IO.File.Delete(zipPath); 
+
+        return File(bytes, "application/zip", zipFileName);
     }
 
 

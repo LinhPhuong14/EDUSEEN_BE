@@ -535,7 +535,7 @@ public partial class Sep490EduseenContext : DbContext
 
             entity.HasOne(d => d.Submission).WithMany(p => p.SubmissionFiles)
                 .HasForeignKey(d => d.SubmissionId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK__Submissio__submi__797309D9");
         });
 
