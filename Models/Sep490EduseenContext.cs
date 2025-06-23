@@ -65,9 +65,9 @@ public partial class Sep490EduseenContext : DbContext
 
     public virtual DbSet<VideoCall> VideoCalls { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Data Source=POGGLES;Initial Catalog=sep490_eduseen;Trusted_Connection=SSPI;Encrypt=False;TrustServerCertificate=True");
+//    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+//#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+//        => optionsBuilder.UseSqlServer("Data Source=POGGLES;Initial Catalog=sep490_eduseen;Trusted_Connection=SSPI;Encrypt=False;TrustServerCertificate=True");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -514,6 +514,12 @@ public partial class Sep490EduseenContext : DbContext
                 .HasConstraintName("FK__Submissio__stude__76969D2E");
         });
 
+        modelBuilder.Entity<Submission>()
+                .HasMany(s => s.SubmissionFiles)
+                .WithOne(f => f.Submission)
+                .HasForeignKey(f => f.SubmissionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
         modelBuilder.Entity<SubmissionFile>(entity =>
         {
             entity.HasKey(e => e.FileId).HasName("PK__Submissi__07D884C6EDC7756F");
@@ -529,7 +535,7 @@ public partial class Sep490EduseenContext : DbContext
 
             entity.HasOne(d => d.Submission).WithMany(p => p.SubmissionFiles)
                 .HasForeignKey(d => d.SubmissionId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK__Submissio__submi__797309D9");
         });
 
