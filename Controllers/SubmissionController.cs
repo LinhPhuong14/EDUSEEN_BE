@@ -402,7 +402,6 @@ public class SubmissionController : ControllerBase
         return Ok(submissions);
     }
 
-    
 
     [HttpGet("submission/{submissionId}/download")]
     public async Task<IActionResult> DownloadSubmissionFiles(int submissionId)
@@ -414,29 +413,27 @@ public class SubmissionController : ControllerBase
         if (submission == null || submission.SubmissionFiles.Count == 0)
             return NotFound("Không tìm thấy bài nộp hoặc không có file.");
 
-        var zipFileName = $"Submission_{submissionId}.zip";
-        var zipPath = Path.Combine(Path.GetTempPath(), zipFileName);
+        var zipStream = new MemoryStream();
 
-        if (System.IO.File.Exists(zipPath))
-            System.IO.File.Delete(zipPath);
-
-        using (var zip = ZipFile.Open(zipPath, ZipArchiveMode.Create))
+        using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, true))
         {
             foreach (var file in submission.SubmissionFiles)
             {
                 var filePath = Path.Combine(_env.ContentRootPath, "Uploads", Path.GetFileName(file.FileUrl));
                 if (System.IO.File.Exists(filePath))
                 {
-                    zip.CreateEntryFromFile(filePath, file.FileName);
+                    var zipEntry = archive.CreateEntry(file.FileName, CompressionLevel.Fastest);
+                    using var originalFileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+                    using var entryStream = zipEntry.Open();
+                    await originalFileStream.CopyToAsync(entryStream);
                 }
             }
         }
 
-        var bytes = await System.IO.File.ReadAllBytesAsync(zipPath);
-        System.IO.File.Delete(zipPath); 
-
-        return File(bytes, "application/zip", zipFileName);
+        zipStream.Position = 0; // reset stream before returning
+        return File(zipStream, "application/zip", $"Submission_{submissionId}.zip");
     }
+
 
 
 }
