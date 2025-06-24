@@ -29,7 +29,7 @@ namespace Sep490_Eduseen_BE.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateCourse([FromBody] CreateCourseDto dto)
+        public async Task<IActionResult> CreateCourse([FromBody] CreateCourseDTO dto)
         {
             var teacherId = GetTeacherId();
             var course = await _service.CreateCourseAsync(dto, teacherId);
@@ -37,7 +37,7 @@ namespace Sep490_Eduseen_BE.Controllers
         }
 
         [HttpPut("{courseId}")]
-        public async Task<IActionResult> UpdateCourse(int courseId, [FromBody] UpdateCourseDto dto)
+        public async Task<IActionResult> UpdateCourse(int courseId, [FromBody] UpdateCourseDTO dto)
         {
             var teacherId = GetTeacherId();
             var updated = await _service.UpdateCourseAsync(courseId, dto, teacherId);

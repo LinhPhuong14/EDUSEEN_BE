@@ -16,7 +16,7 @@ namespace Sep490_Eduseen_BE.Services
             _context = context;
         }
 
-        public async Task<CourseDto?> GetCourseAsync(int courseId, int teacherId)
+        public async Task<CourseDTO?> GetCourseAsync(int courseId, int teacherId)
         {
             var course = await _context.Courses
                 .Include(c => c.Sections)
@@ -28,7 +28,7 @@ namespace Sep490_Eduseen_BE.Services
             return ToDto(course);
         }
 
-        public async Task<CourseDto> CreateCourseAsync(CreateCourseDto dto, int teacherId)
+        public async Task<CourseDTO> CreateCourseAsync(CreateCourseDTO dto, int teacherId)
         {
             var course = new Course
             {
@@ -58,7 +58,7 @@ namespace Sep490_Eduseen_BE.Services
             return ToDto(course);
         }
 
-        public async Task<bool> UpdateCourseAsync(int courseId, UpdateCourseDto dto, int teacherId)
+        public async Task<bool> UpdateCourseAsync(int courseId, UpdateCourseDTO dto, int teacherId)
         {
             var course = await _context.Courses
                 .Include(c => c.Sections)
@@ -166,7 +166,7 @@ namespace Sep490_Eduseen_BE.Services
             return true;
         }
 
-        public async Task<CourseAnalysisDto> GetCourseAnalysisAsync(int courseId, int teacherId)
+        public async Task<CourseAnalysisDTO> GetCourseAnalysisAsync(int courseId, int teacherId)
         {
             // Đảm bảo course thuộc về teacher này
             var isOwner = await _context.Courses.AnyAsync(c => c.CourseId == courseId && c.TeacherId == teacherId);
@@ -204,7 +204,7 @@ namespace Sep490_Eduseen_BE.Services
                     avgCompletedLectures = completedLectures.Average();
             }
 
-            return new CourseAnalysisDto
+            return new CourseAnalysisDTO
             {
                 CourseId = courseId,
                 TotalEnrollments = totalEnrollments,
@@ -215,7 +215,7 @@ namespace Sep490_Eduseen_BE.Services
         }
 
 
-        private static CourseDto ToDto(Course course) => new()
+        private static CourseDTO ToDto(Course course) => new()
         {
             CourseId = course.CourseId,
             Title = course.Title,
@@ -227,7 +227,7 @@ namespace Sep490_Eduseen_BE.Services
             UpdatedAt = course.UpdatedAt,
             Sections = course.Sections
                 .OrderBy(s => s.Order)
-                .Select(s => new SectionDto
+                .Select(s => new SectionDTO
                 {
                     SectionId = s.SectionId,
                     CourseId = s.CourseId,
@@ -235,7 +235,7 @@ namespace Sep490_Eduseen_BE.Services
                     Order = s.Order,
                     Lectures = s.Lectures
                         .OrderBy(l => l.Order)
-                        .Select(l => new LectureDto
+                        .Select(l => new LectureDTO
                         {
                             LectureId = l.LectureId,
                             SectionId = l.SectionId,
