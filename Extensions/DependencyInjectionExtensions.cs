@@ -28,6 +28,8 @@ public static class DependencyInjectionExtensions
         services.AddScoped<IReviewService, ReviewService>();
         services.AddScoped<ICourseService, CourseService>();
         services.AddScoped<IEnrollmentService, EnrollmentService>();
+        services.AddScoped(typeof(RepositoryAsync<>));
+        services.AddScoped<IReviewService, ReviewService>();
 
         return services;
     }
