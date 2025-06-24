@@ -12,6 +12,8 @@ using Sep490_Eduseen_BE.Services;
 using Sep490_Eduseen_BE.Services;
 using System.Text;
 
+using Sep490_Eduseen_BE.Extensions;
+using Sep490_Eduseen_BE.Hubs;
 
 namespace Sep490_Eduseen_BE
 {
@@ -34,7 +36,7 @@ namespace Sep490_Eduseen_BE
             builder.Services.AddApplicationServices();
             builder.Services.AddMemoryCache();
             builder.Services.AddAuthorization();
-            builder.Services.AddSignalR();
+
 
             var app = builder.Build();
 

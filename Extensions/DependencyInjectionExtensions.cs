@@ -2,7 +2,6 @@ using Sep490_Eduseen_BE.Services;
 using Sep490_Eduseen_BE.Models;
 using Sep490_Eduseen_BE.Repositories;
 using Sep490_Eduseen_BE.Repositories.impl;
-using Sep490_Eduseen_BE.Services;
 
 namespace Sep490_Eduseen_BE.Extensions;
 
@@ -27,6 +26,8 @@ public static class DependencyInjectionExtensions
         services.AddScoped(typeof(RepositoryAsync<>));
         services.AddScoped<ICourseTeacherService, CourseTeacherService>();
         services.AddScoped<IReviewService, ReviewService>();
+        services.AddScoped<ICourseService, CourseService>();
+        services.AddScoped<IEnrollmentService, EnrollmentService>();
 
         return services;
     }

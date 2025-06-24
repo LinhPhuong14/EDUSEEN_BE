@@ -12,9 +12,9 @@ namespace Sep490_Eduseen_BE.Controllers
     public class TeacherCourseController : ControllerBase
     {
 
-        private readonly ICourseService _service;
+        private readonly ICourseTeacherService _service;
         private readonly IReviewService _rvservice;
-        public TeacherCourseController(IReviewService rvservice, ICourseService service)
+        public TeacherCourseController(IReviewService rvservice, ICourseTeacherService service)
         {
             _service = service;
             _rvservice = rvservice;
