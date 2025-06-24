@@ -125,5 +125,36 @@ namespace Sep490_Eduseen_BE.Repositories.impl
                 .ToListAsync(cancellationToken);
             return roles.FirstOrDefault(r => r.RoleName.Equals(roleName, StringComparison.OrdinalIgnoreCase));
         }
+        public async Task CreatePasswordResetTokenAsync(PasswordResetToken token)
+        {
+            _context.PasswordResetTokens.Add(token);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<PasswordResetToken> GetPasswordResetTokenAsync(string tokenValue)
+        {
+            return await _context.PasswordResetTokens
+                .FirstOrDefaultAsync(t => t.Token == tokenValue);
+        }
+
+        public async Task DeletePasswordResetTokenAsync(PasswordResetToken token)
+        {
+            _context.PasswordResetTokens.Remove(token);
+            await _context.SaveChangesAsync();
+        }
+        public async Task<IEnumerable<User>> GetAllUsersWithRoleAsync(CancellationToken cancellationToken = default)
+        {
+            return await _context.Users
+                .Include(u => u.Role) 
+                .ToListAsync(cancellationToken);
+        }
+
+        public async Task<User?> GetUserByIdWithRoleAsync(int id, CancellationToken cancellationToken = default)
+        {
+            return await _context.Users
+                .Include(u => u.Role) 
+                .FirstOrDefaultAsync(u => u.UserId == id, cancellationToken);
+        }
+
     }
 }

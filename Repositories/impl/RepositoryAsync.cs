@@ -50,4 +50,17 @@ public class RepositoryAsync<T> : IRepositoryAsync<T> where T : class
         _dbSet.Update(entity);
         return _context.SaveChangesAsync(cancellationToken);
     }
+    public async Task<IEnumerable<T>> FindAsync(
+    Expression<Func<T, bool>> predicate,
+    CancellationToken cancellationToken = default)
+    {
+        return await _dbSet.Where(predicate).ToListAsync(cancellationToken);
+    }
+
+    public async Task<T?> FirstOrDefaultAsync(
+        Expression<Func<T, bool>> predicate,
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbSet.FirstOrDefaultAsync(predicate, cancellationToken);
+    }
 }
