@@ -7,11 +7,11 @@ using Sep490_Eduseen_BE.Dtos.Teacher;
 
 namespace Sep490_Eduseen_BE.Services
 {
-    public class CourseService : ICourseService
+    public class CourseTeacherService : ICourseTeacherService
     {
         private readonly Sep490EduseenContext _context;
 
-        public CourseService(Sep490EduseenContext context)
+        public CourseTeacherService(Sep490EduseenContext context)
         {
             _context = context;
         }

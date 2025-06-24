@@ -3,7 +3,7 @@ using Sep490_Eduseen_BE.Dtos.Teacher;
 
 namespace Sep490_Eduseen_BE.Repositories
 {
-    public interface ICourseService
+    public interface ICourseTeacherService
     {
         Task<CourseDto?> GetCourseAsync(int courseId, int teacherId);
         Task<CourseDto> CreateCourseAsync(CreateCourseDto dto, int teacherId);
