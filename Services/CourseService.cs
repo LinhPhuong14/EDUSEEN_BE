@@ -2,14 +2,8 @@ using AutoMapper;
 using Sep490_Eduseen_BE.Dtos.Course;
 using Sep490_Eduseen_BE.Models;
 using Sep490_Eduseen_BE.Repositories;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System;
-using System.Linq;
 using Sep490_Eduseen_BE.Exceptions;
-using Sep490_Eduseen_BE.Repositories.impl;
-using Sep490_Eduseen_BE.Dtos;
-using Microsoft.EntityFrameworkCore;
+
 
 namespace Sep490_Eduseen_BE.Services
 {
@@ -199,6 +193,6 @@ namespace Sep490_Eduseen_BE.Services
                 await _courseRepository.AddReviewAsync(newReview);
                 return (true, "Thank you for your review.");
             }
-        }              
+        }
     }
 }

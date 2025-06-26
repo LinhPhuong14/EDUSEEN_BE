@@ -14,7 +14,6 @@ using System.Text;
 
 using Sep490_Eduseen_BE.Extensions;
 using Sep490_Eduseen_BE.Hubs;
-using Sep490_Eduseen_BE.Hubs;
 
 namespace Sep490_Eduseen_BE
 {
@@ -28,7 +27,6 @@ namespace Sep490_Eduseen_BE
             builder.Services.AddControllers();
             builder.Services.AddSwaggerServices();
             builder.Services.AddDatabaseServices(builder.Configuration);
-            builder.Services.AddSignalR();
             builder.Services.AddSignalR();
             builder.Services.AddAuthenticationServices(builder.Configuration);
             builder.Services.AddDependencyInjectionServices();
