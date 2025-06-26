@@ -2,6 +2,7 @@ using Sep490_Eduseen_BE.Services;
 using Sep490_Eduseen_BE.Models;
 using Sep490_Eduseen_BE.Repositories;
 using Sep490_Eduseen_BE.Repositories.impl;
+using ICourseService = Sep490_Eduseen_BE.Services.ICourseService;
 
 namespace Sep490_Eduseen_BE.Extensions;
 

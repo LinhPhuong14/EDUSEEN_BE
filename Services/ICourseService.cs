@@ -1,6 +1,4 @@
 using Sep490_Eduseen_BE.Dtos.Course;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Sep490_Eduseen_BE.Services
 {
