@@ -16,5 +16,10 @@ namespace Sep490_Eduseen_BE.Repositories
         Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default);
         Task<bool> CheckPasswordAsync(User user, string password);
         Task<Role> GetRoleByNameAsync(string roleName, CancellationToken cancellationToken = default);
+        Task CreatePasswordResetTokenAsync(PasswordResetToken token);
+        Task<PasswordResetToken> GetPasswordResetTokenAsync(string token);
+        Task DeletePasswordResetTokenAsync(PasswordResetToken token);
+        Task<IEnumerable<User>> GetAllUsersWithRoleAsync(CancellationToken cancellationToken = default);
+        Task<User?> GetUserByIdWithRoleAsync(int id, CancellationToken cancellationToken = default);
     }
 }

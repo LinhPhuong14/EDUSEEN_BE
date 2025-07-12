@@ -9,6 +9,7 @@ using Sep490_Eduseen_BE.Profiles;
 using Sep490_Eduseen_BE.Services;
 using System.Text;
 
+
 namespace Sep490_Eduseen_BE
 {
     public class Program
@@ -21,6 +22,7 @@ namespace Sep490_Eduseen_BE
             builder.Services.AddControllers();
             builder.Services.AddSwaggerServices();
             builder.Services.AddDatabaseServices(builder.Configuration);
+            builder.Services.AddSignalR();
             builder.Services.AddAuthenticationServices(builder.Configuration);
             builder.Services.AddDependencyInjectionServices();
             builder.Services.AddAutoMapperServices();
@@ -31,7 +33,6 @@ namespace Sep490_Eduseen_BE
             builder.Services.AddAuthorization();
             builder.Services.AddSignalR();
             builder.Services.AddScoped<IVideoCallService, VideoCallService>();
-
 
 
             var app = builder.Build();
@@ -46,6 +47,8 @@ namespace Sep490_Eduseen_BE
             app.UseSwaggerServices(builder.Environment);
             app.UseStaticUploads(builder.Environment);
             app.MapHub<SubmissionHub>("/hubs/submission");
+            app.MapHub<ReviewHub>("/reviewhub");
+
             app.Run();
 
 

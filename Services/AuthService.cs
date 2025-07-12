@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
 namespace Sep490_Eduseen_BE.Services
 {
@@ -304,5 +305,147 @@ namespace Sep490_Eduseen_BE.Services
                 return false;
             }
         }
+        public async Task<GenericResponseDTO> SendPasswordResetAsync(ForgotPasswordDTO dto)
+        {
+            // 1. Kiểm tra user theo email
+            var user = await _userRepository.GetByEmailAsync(dto.Email);
+            if (user == null)
+                return new GenericResponseDTO { Success = false, Message = "No account found with this email." };
+
+            // 2. Sinh token reset
+            var token = Guid.NewGuid().ToString("N");
+            var expiresAt = DateTime.UtcNow.AddMinutes(15);
+
+            var resetToken = new PasswordResetToken
+            {
+                UserId = user.UserId,
+                Token = token,
+                ExpiresAt = expiresAt
+            };
+
+            // Sử dụng repository để lưu token
+            try
+            {
+                await _userRepository.CreatePasswordResetTokenAsync(resetToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating password reset token");
+                return new GenericResponseDTO { Success = false, Message = "Error processing your request." };
+            }
+
+            // 3. Gửi email chứa link reset
+            try
+            {
+                var resetLink = $"https://localhost:7256/reset-password?token={token}";
+                await _emailService.SendEmailAsync(
+                    user.Email,
+                    "Password Reset",
+                    $"Click the link to reset your password: <a href='{resetLink}'>Reset Password</a>. This link expires in 15 minutes."
+                );
+                return new GenericResponseDTO { Success = true, Message = "Reset link sent. Please check your email." };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending reset email");
+                return new GenericResponseDTO { Success = false, Message = "We’re unable to process your request right now. Please try again later." };
+            }
+        }
+
+        public async Task<GenericResponseDTO> ResetPasswordAsync(ResetPasswordDTO dto)
+        {
+            // 1. Kiểm tra token hợp lệ
+            var resetToken = await _userRepository.GetPasswordResetTokenAsync(dto.Token);
+            if (resetToken == null || resetToken.ExpiresAt < DateTime.UtcNow)
+                return new GenericResponseDTO { Success = false, Message = "This reset link has expired or is invalid. Please request a new one." };
+
+            // 2. Kiểm tra mật khẩu mới
+            if (dto.NewPassword != dto.ConfirmPassword)
+                return new GenericResponseDTO { Success = false, Message = "New password and confirmation do not match." };
+            if (dto.NewPassword.Length < 8)
+                return new GenericResponseDTO { Success = false, Message = "Password must contain at least 8 characters." };
+
+            // 3. Cập nhật mật khẩu
+            var user = await _userRepository.GetByIdAsync(resetToken.UserId);
+            if (user == null)
+                return new GenericResponseDTO { Success = false, Message = "User not found." };
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+
+            try
+            {
+                await _userRepository.UpdateAsync(user);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating password");
+                return new GenericResponseDTO { Success = false, Message = "Error updating password." };
+            }
+
+            // 4. Xóa token đã dùng
+            try
+            {
+                await _userRepository.DeletePasswordResetTokenAsync(resetToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting reset token");
+                // Không return error vì password đã được reset thành công
+            }
+
+            return new GenericResponseDTO { Success = true, Message = "Your password has been reset. You may now log in." };
+        }
+        public async Task<GenericResponseDTO> ChangePasswordAsync(int userId, ChangePasswordDTO dto)
+        {
+            // 1. Kiểm tra dữ liệu đầu vào
+            if (dto == null)
+                return new GenericResponseDTO { Success = false, Message = "Invalid data." };
+
+            if (string.IsNullOrWhiteSpace(dto.CurrentPassword) || string.IsNullOrWhiteSpace(dto.NewPassword) || string.IsNullOrWhiteSpace(dto.ConfirmNewPassword))
+                return new GenericResponseDTO { Success = false, Message = "All password fields are required." };
+
+            // 2. Lấy user từ repository
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+                return new GenericResponseDTO { Success = false, Message = "User not found." };
+
+            // 3. Kiểm tra mật khẩu hiện tại
+            var isCurrentPasswordValid = await _userRepository.CheckPasswordAsync(user, dto.CurrentPassword);
+            if (!isCurrentPasswordValid)
+                return new GenericResponseDTO { Success = false, Message = "The current password you entered is incorrect." };
+
+            // 4. Kiểm tra mật khẩu mới và xác nhận
+            if (dto.NewPassword != dto.ConfirmNewPassword)
+                return new GenericResponseDTO { Success = false, Message = "New password and confirmation do not match." };
+
+            if (dto.NewPassword.Length < 8)
+                return new GenericResponseDTO { Success = false, Message = "Password must contain at least 8 characters." };
+
+            if (BCrypt.Net.BCrypt.Verify(dto.NewPassword, user.PasswordHash))
+                return new GenericResponseDTO { Success = false, Message = "New password must be different from old password." };
+
+            // 5. (Có thể thêm kiểm tra độ mạnh mật khẩu nếu muốn)
+
+            // 6. Hash và cập nhật mật khẩu mới
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+
+            try
+            {
+                await _userRepository.UpdateAsync(user);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating password");
+                return new GenericResponseDTO { Success = false, Message = "We couldn't update your password. Please try again later." };
+            }
+
+            // 7. (Có thể gửi email thông báo đổi mật khẩu nếu muốn)
+
+            return new GenericResponseDTO { Success = true, Message = "Your password has been changed successfully." };
+        }
+
+
+
+
     }
 }
