@@ -21,5 +21,8 @@ public partial class Schedule
 
     public virtual User Teacher { get; set; } = null!;
 
+    public int CourseId { get; set; }
+    public virtual Course Course { get; set; } = null!;
+
     public virtual ICollection<VideoCall> VideoCalls { get; set; } = new List<VideoCall>();
 }

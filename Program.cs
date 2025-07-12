@@ -6,9 +6,6 @@ using Sep490_Eduseen_BE.Extensions;
 using Sep490_Eduseen_BE.Hubs;
 using Sep490_Eduseen_BE.Models;
 using Sep490_Eduseen_BE.Profiles;
-using Sep490_Eduseen_BE.Repositories;
-using Sep490_Eduseen_BE.Repositories.impl;
-using Sep490_Eduseen_BE.Services;
 using Sep490_Eduseen_BE.Services;
 using System.Text;
 
@@ -36,6 +33,13 @@ namespace Sep490_Eduseen_BE
             builder.Services.AddApplicationServices();
             builder.Services.AddMemoryCache();
             builder.Services.AddAuthorization();
+
+
+            builder.Services.AddSignalR();
+            builder.Services.AddScoped<IVideoCallService, VideoCallService>();
+
+
+
 
             var app = builder.Build();
 
