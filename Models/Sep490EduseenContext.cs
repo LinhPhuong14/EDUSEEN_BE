@@ -469,6 +469,10 @@ public partial class Sep490EduseenContext : DbContext
                 .HasForeignKey(d => d.TeacherId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Schedules__teach__0B91BA14");
+            entity.HasOne(s => s.Course)
+       .WithMany()
+       .HasForeignKey(s => s.CourseId)
+       .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<Section>(entity =>
