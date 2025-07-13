@@ -20,23 +20,23 @@ namespace Sep490_Eduseen_BE.Controllers
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        [HttpGet]
-        public async Task<IActionResult> ViewProfileAsync()
-        {
-            _logger.LogInformation("Processing profile view request for user: {UserId}", User.Identity?.Name ?? "Unknown");
+        //[HttpGet]
+        //public async Task<IActionResult> ViewProfileAsync()
+        //{
+        //    _logger.LogInformation("Processing profile view request for user: {UserId}", User.Identity?.Name ?? "Unknown");
 
-            var response = await _profileService.GetProfileAsync();
-            if (!response.Success)
-            {
-                _logger.LogWarning("Profile view failed for user: {UserId}. Reason: {ErrorMessage}", User.Identity?.Name ?? "Unknown", response.ErrorMessage);
-                return response.StatusCode == 404
-                    ? NotFound(new { Error = response.ErrorMessage })
-                    : StatusCode(response.StatusCode, new { Error = response.ErrorMessage });
-            }
+        //    var response = await _profileService.GetProfileAsync();
+        //    if (!response.Success)
+        //    {
+        //        _logger.LogWarning("Profile view failed for user: {UserId}. Reason: {ErrorMessage}", User.Identity?.Name ?? "Unknown", response.ErrorMessage);
+        //        return response.StatusCode == 404
+        //            ? NotFound(new { Error = response.ErrorMessage })
+        //            : StatusCode(response.StatusCode, new { Error = response.ErrorMessage });
+        //    }
 
-            _logger.LogInformation("Profile view successful for user: {UserId}", User.Identity?.Name ?? "Unknown");
-            return Ok(new { Message = "Profile retrieved successfully.", Data = response.Data });
-        }
+        //    _logger.LogInformation("Profile view successful for user: {UserId}", User.Identity?.Name ?? "Unknown");
+        //    return Ok(new { Message = "Profile retrieved successfully.", Data = response.Data });
+        //}
 
         [HttpPut]
         public async Task<IActionResult> UpdateProfileAsync([FromBody] UpdateProfileDTO profileDto)

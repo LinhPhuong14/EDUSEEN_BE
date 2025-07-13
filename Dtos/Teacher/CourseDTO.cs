@@ -1,6 +1,8 @@
-﻿namespace Sep490_Eduseen_BE.Dtos
+﻿using Sep490_Eduseen_BE.Dtos.Course;
+
+namespace Sep490_Eduseen_BE.Dtos
 {
-    public class CourseDto
+    public class CourseDTO
     {
         public int CourseId { get; set; }
         public string Title { get; set; } = null!;
@@ -10,19 +12,19 @@
         public int TeacherId { get; set; }
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
-        public List<SectionDto> Sections { get; set; } = new();
+        public List<SectionDTO> Sections { get; set; } = new();
     }
 
-    public class SectionDto
+    public class SectionDTO
     {
         public int SectionId { get; set; }
         public int CourseId { get; set; }
         public string Title { get; set; } = null!;
         public int Order { get; set; }
-        public List<LectureDto> Lectures { get; set; } = new();
+        public List<LectureDTO> Lectures { get; set; } = new();
     }
 
-    public class LectureDto
+    public class LectureDTO
     {
         public int LectureId { get; set; }
         public int SectionId { get; set; }
@@ -33,23 +35,23 @@
         public int Order { get; set; }
     }
 
-    public class CreateCourseDto
+    public class CreateCourseDTO
     {
         public string Title { get; set; } = null!;
         public string? Description { get; set; }
         public int? CategoryId { get; set; }
         public string? Level { get; set; }
-        public List<CreateSectionDto> Sections { get; set; } = new();
+        public List<CreateSectionDTO> Sections { get; set; } = new();
     }
 
-    public class CreateSectionDto
+    public class CreateSectionDTO
     {
         public string Title { get; set; } = null!;
         public int Order { get; set; }
-        public List<CreateLectureDto> Lectures { get; set; } = new();
+        public List<CreateLectureDTO> Lectures { get; set; } = new();
     }
 
-    public class CreateLectureDto
+    public class CreateLectureDTO
     {
         public string Title { get; set; } = null!;
         public string? ContentType { get; set; }
@@ -58,24 +60,24 @@
         public int Order { get; set; }
     }
 
-    public class UpdateCourseDto
+    public class UpdateCourseDTO
     {
         public string Title { get; set; } = null!;
         public string? Description { get; set; }
         public int? CategoryId { get; set; }
         public string? Level { get; set; }
-        public List<UpdateSectionDto> Sections { get; set; } = new();
+        public List<UpdateSectionDTO> Sections { get; set; } = new();
     }
 
-    public class UpdateSectionDto
+    public class UpdateSectionDTO
     {
         public int? SectionId { get; set; } // null nếu là section mới
         public string Title { get; set; } = null!;
         public int Order { get; set; }
-        public List<UpdateLectureDto> Lectures { get; set; } = new();
+        public List<UpdateLectureDTO> Lectures { get; set; } = new();
     }
 
-    public class UpdateLectureDto
+    public class UpdateLectureDTO
     {
         public int? LectureId { get; set; } // null nếu là lecture mới
         public string Title { get; set; } = null!;
@@ -85,7 +87,7 @@
         public int Order { get; set; }
     }
 
-    public class CourseAnalysisDto
+    public class CourseAnalysisDTO
     {
         public int CourseId { get; set; }
         public int TotalEnrollments { get; set; }
