@@ -40,7 +40,7 @@ namespace Sep490_Eduseen_BE.Controllers
             }
 
             _logger.LogInformation("Login successful for email: {Email}", loginDTO.Email);
-            return Ok(new { Message = "Login successful.", Token = response.Token });
+            return Ok(new { Message = "Login successful.", Token = response.Token, User = response.User });
         }
 
         [HttpPost("register")]
