@@ -40,7 +40,6 @@ namespace Sep490_Eduseen_BE
 
 
 
-
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
