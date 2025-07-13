@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Sep490_Eduseen_BE.Services;
+using System.Security.Claims;
 
 namespace Sep490_Eduseen_BE.Controllers
 {
@@ -16,9 +17,15 @@ namespace Sep490_Eduseen_BE.Controllers
             _videoCallService = videoCallService;
         }
 
-        [HttpGet("history/{userId}")]
-        public async Task<IActionResult> GetCallHistory(int userId)
+        [HttpGet("history")]
+        public async Task<IActionResult> GetCallHistory()
         {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            {
+                return Unauthorized(new { message = "Không thể xác định người dùng." });
+            }
+
             var result = await _videoCallService.GetVideoCallHistoryForUser(userId);
             return Ok(result);
         }

@@ -446,7 +446,6 @@ public partial class Sep490EduseenContext : DbContext
                 .HasMaxLength(50)
                 .HasColumnName("role_name");
         });
-
         modelBuilder.Entity<Schedule>(entity =>
         {
             entity.HasKey(e => e.ScheduleId).HasName("PK__Schedule__C46A8A6FD5BDFD86");
@@ -459,6 +458,7 @@ public partial class Sep490EduseenContext : DbContext
                 .HasColumnName("status");
             entity.Property(e => e.StudentId).HasColumnName("student_id");
             entity.Property(e => e.TeacherId).HasColumnName("teacher_id");
+            entity.Property(e => e.CourseId).HasColumnName("course_id"); 
 
             entity.HasOne(d => d.Student).WithMany(p => p.ScheduleStudents)
                 .HasForeignKey(d => d.StudentId)
@@ -469,11 +469,13 @@ public partial class Sep490EduseenContext : DbContext
                 .HasForeignKey(d => d.TeacherId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Schedules__teach__0B91BA14");
+
             entity.HasOne(s => s.Course)
-       .WithMany()
-       .HasForeignKey(s => s.CourseId)
-       .OnDelete(DeleteBehavior.Restrict);
+                .WithMany()
+                .HasForeignKey(s => s.CourseId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
+
 
         modelBuilder.Entity<Section>(entity =>
         {
