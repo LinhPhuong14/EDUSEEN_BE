@@ -77,10 +77,24 @@ namespace Sep490_Eduseen_BE.Services
             var tokenDTO = await _tokenService.CreateJWTTokenAsync(user, populateExp: true);
             _tokenService.SetTokenCookie(tokenDTO, _httpContextAccessor.HttpContext);
 
+            // Chuẩn bị thông tin người dùng cơ bản để trả về cho FE
+            var userInfo = new Sep490_Eduseen_BE.Dtos.ProfileDTO
+            {
+                UserId = user.UserId,
+                Username = user.Username,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                AvatarUrl = user.AvatarUrl,
+                RoleId = user.RoleId,
+                RoleName = user.Role?.RoleName
+            };
+
             return new AuthResponseDTO
             {
                 IsAuthSuccessful = true,
-                Token = tokenDTO
+                Token = tokenDTO,
+                User = userInfo
             };
         }
 

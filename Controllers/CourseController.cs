@@ -21,6 +21,7 @@ namespace Sep490_Eduseen_BE.Controllers
             _enrollmentService = enrollmentService;
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> GetCourses()
         {
@@ -28,6 +29,7 @@ namespace Sep490_Eduseen_BE.Controllers
             return Ok(courses);
         }
 
+        [AllowAnonymous]
         [HttpGet("search/{courseName}")]
         public async Task<IActionResult> SearchCourses(string courseName)
         {
@@ -35,6 +37,7 @@ namespace Sep490_Eduseen_BE.Controllers
             return Ok(courses);
         }
 
+        [AllowAnonymous]
         [HttpGet("detail/{courseId:int}")]
         public async Task<IActionResult> GetCourseById(int courseId)
         {

@@ -1,3 +1,5 @@
+using Sep490_Eduseen_BE.Dtos;
+
 namespace Sep490_Eduseen_BE.Dtos.Auth;
 
 public class AuthResponseDTO
@@ -6,6 +8,8 @@ public class AuthResponseDTO
     public string? ErrorMessage { get; set; }
 
     public TokenDTO Token { get; set; }
+
+    public ProfileDTO? User { get; set; } // Thông tin cơ bản của người dùng
 
 }
 public class TokenDTO
