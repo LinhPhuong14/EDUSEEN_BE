@@ -351,7 +351,7 @@ namespace Sep490_Eduseen_BE.Services
             // 3. Gửi email chứa link reset
             try
             {
-                var resetLink = $"https://localhost:7256/reset-password?token={token}";
+                var resetLink = $"http://localhost:3000/auth/reset-password?token={token}";
                 await _emailService.SendEmailAsync(
                     user.Email,
                     "Password Reset",
