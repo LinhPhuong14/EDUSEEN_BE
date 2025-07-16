@@ -23,7 +23,13 @@ namespace Sep490_Eduseen_BE
             // Add services to the container.
             builder.Services.AddControllers();
             builder.Services.AddSwaggerServices();
-            builder.Services.AddDatabaseServices(builder.Configuration);
+            //builder.Services.AddDatabaseServices(builder.Configuration);
+            builder.Services.AddDbContext<Sep490EduseenContext>(options =>
+            {
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+                options.EnableSensitiveDataLogging(); 
+            });
+
             builder.Services.AddSignalR();
             builder.Services.AddAuthenticationServices(builder.Configuration);
             builder.Services.AddDependencyInjectionServices();

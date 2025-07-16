@@ -31,6 +31,8 @@ public partial class User
 
     public DateTime? RefreshTokenExpiresAt { get; set; }
 
+    public bool? EmailConfirmed { get; set; }
+
     public virtual ICollection<Assignment> Assignments { get; set; } = new List<Assignment>();
 
     public virtual ICollection<ChatMessage> ChatMessages { get; set; } = new List<ChatMessage>();

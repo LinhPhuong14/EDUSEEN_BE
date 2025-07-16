@@ -21,8 +21,6 @@ public partial class Course
 
     public DateTime? UpdatedAt { get; set; }
 
-    public virtual ICollection<Assignment> Assignments { get; set; } = new List<Assignment>();
-
     public virtual Category? Category { get; set; }
 
     public virtual ICollection<ChatMessage> ChatMessages { get; set; } = new List<ChatMessage>();
@@ -34,6 +32,8 @@ public partial class Course
     public virtual ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
 
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
+
+    public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
 
     public virtual ICollection<Section> Sections { get; set; } = new List<Section>();
 
