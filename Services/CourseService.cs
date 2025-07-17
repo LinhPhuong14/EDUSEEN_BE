@@ -1,5 +1,6 @@
 using AutoMapper;
 using Sep490_Eduseen_BE.Dtos.Course;
+using Sep490_Eduseen_BE.Dtos.Review;
 using Sep490_Eduseen_BE.Models;
 using Sep490_Eduseen_BE.Repositories;
 using Sep490_Eduseen_BE.Exceptions;
@@ -193,6 +194,12 @@ namespace Sep490_Eduseen_BE.Services
                 await _courseRepository.AddReviewAsync(newReview);
                 return (true, "Thank you for your review.");
             }
+        }
+
+        public async Task<IEnumerable<ReviewDto>> GetTopReviewsAsync()
+        {
+            var reviews = await _courseRepository.GetTopReviewsAsync(3);
+            return _mapper.Map<IEnumerable<ReviewDto>>(reviews);
         }
     }
 }

@@ -18,5 +18,6 @@ namespace Sep490_Eduseen_BE.Repositories
         Task<Review> GetReviewAsync(int studentId, int courseId);
         Task AddReviewAsync(Review review);
         Task UpdateReviewAsync(Review review);
+        Task<IEnumerable<Review>> GetTopReviewsAsync(int count = 3);
     }
 } 
