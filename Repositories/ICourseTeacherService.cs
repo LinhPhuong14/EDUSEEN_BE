@@ -10,6 +10,6 @@ namespace Sep490_Eduseen_BE.Repositories
         Task<bool> UpdateCourseAsync(int courseId, UpdateCourseDTO dto, int teacherId);
         Task<bool> DeleteCourseAsync(int courseId, int teacherId);
         Task<CourseAnalysisDTO> GetCourseAnalysisAsync(int courseId, int teacherId);
-        Task<HomeworkAnalysisDto> GetHomeworkAnalysisAsync(int assignmentId, int teacherId);
+        //Task<HomeworkAnalysisDto> GetHomeworkAnalysisAsync(int assignmentId, int teacherId);
     }
 }

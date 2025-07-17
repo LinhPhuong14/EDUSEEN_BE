@@ -121,8 +121,8 @@ namespace Sep490_Eduseen_BE.Controllers
 
             var result = await _authService.ChangePasswordAsync(userId, dto);
             if (!result.Success)
-                return BadRequest(result.Message);
-            return Ok(result.Message);
+                return BadRequest(result);
+            return Ok(result);
         }
 
 

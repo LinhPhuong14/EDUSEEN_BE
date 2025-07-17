@@ -1,4 +1,5 @@
 using Sep490_Eduseen_BE.Dtos.Course;
+using Sep490_Eduseen_BE.Dtos.Review;
 
 namespace Sep490_Eduseen_BE.Services
 {
@@ -13,5 +14,6 @@ namespace Sep490_Eduseen_BE.Services
         Task<CourseProgressDto> GetCourseProgressAsync(int studentId, int courseId);
         Task<IEnumerable<CourseDto>> GetCompletedCoursesAsync(int studentId);
         Task<(bool Success, string Message)> RateCourseAsync(int studentId, int courseId, RateCourseRequestDto request);
+        Task<IEnumerable<ReviewDto>> GetTopReviewsAsync();
     }
 } 

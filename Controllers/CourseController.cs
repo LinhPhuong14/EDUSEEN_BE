@@ -185,5 +185,13 @@ namespace Sep490_Eduseen_BE.Controllers
 
             return Ok(new { message = result.Message });
         }
+
+        [AllowAnonymous]
+        [HttpGet("top-review")]
+        public async Task<IActionResult> GetTopReviews()
+        {
+            var reviews = await _courseService.GetTopReviewsAsync();
+            return Ok(reviews);
+        }
     }
 } 

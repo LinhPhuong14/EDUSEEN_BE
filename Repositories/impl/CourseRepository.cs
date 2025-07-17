@@ -101,5 +101,16 @@ namespace Sep490_Eduseen_BE.Repositories.impl
             _context.Reviews.Update(review);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<IEnumerable<Review>> GetTopReviewsAsync(int count = 3)
+        {
+            return await _context.Reviews
+                .Include(r => r.Student)
+                .Include(r => r.Course)
+                .OrderByDescending(r => r.Rating)
+                .ThenByDescending(r => r.CreatedAt)
+                .Take(count)
+                .ToListAsync();
+        }
     }
 } 

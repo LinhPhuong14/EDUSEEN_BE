@@ -7,6 +7,8 @@ public static class AutoMapperExtensions
     public static IServiceCollection AddAutoMapperServices(this IServiceCollection services){
         services.AddAutoMapper(typeof(CourseProfile));
         services.AddAutoMapper(typeof(MappingProfile));
+        services.AddAutoMapper(typeof(CategoryProfile));
+        services.AddAutoMapper(typeof(ReviewProfile));
         return services;
     }
 }
