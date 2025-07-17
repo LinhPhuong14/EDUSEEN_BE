@@ -28,6 +28,17 @@ namespace Sep490_Eduseen_BE.Services
             return ToDto(course);
         }
 
+        public async Task<IEnumerable<CourseDTO>> GetCoursesAsync(int teacherId)
+        {
+            var courses = await _context.Courses
+                .Where(c => c.TeacherId == teacherId)
+                .Include(c => c.Sections)
+                    .ThenInclude(s => s.Lectures)
+                .ToListAsync();
+
+            return courses.Select(ToDto);
+        }
+
         public async Task<CourseDTO> CreateCourseAsync(CreateCourseDTO dto, int teacherId)
         {
             var course = new Course
