@@ -76,21 +76,16 @@ public partial class Sep490EduseenContext : DbContext
             entity.HasKey(e => e.AssignmentId).HasName("PK__Assignme__DA891814A1C93F74");
 
             entity.Property(e => e.AssignmentId).HasColumnName("assignment_id");
-            entity.Property(e => e.CourseId).HasColumnName("course_id");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnName("created_at");
             entity.Property(e => e.CreatedBy).HasColumnName("created_by");
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.DueDate).HasColumnName("due_date");
+            entity.Property(e => e.LectureId).HasColumnName("lecture_id");
             entity.Property(e => e.Title)
                 .HasMaxLength(255)
                 .HasColumnName("title");
-
-            entity.HasOne(d => d.Course).WithMany(p => p.Assignments)
-                .HasForeignKey(d => d.CourseId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Assignmen__cours__628FA481");
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.Assignments)
                 .HasForeignKey(d => d.CreatedBy)
@@ -463,6 +458,7 @@ public partial class Sep490EduseenContext : DbContext
             entity.HasKey(e => e.ScheduleId).HasName("PK__Schedule__C46A8A6FA3E1EF97");
 
             entity.Property(e => e.ScheduleId).HasColumnName("schedule_id");
+            entity.Property(e => e.CourseId).HasColumnName("course_id");
             entity.Property(e => e.Duration).HasColumnName("duration");
             entity.Property(e => e.ScheduledTime).HasColumnName("scheduled_time");
             entity.Property(e => e.Status)
@@ -470,6 +466,10 @@ public partial class Sep490EduseenContext : DbContext
                 .HasColumnName("status");
             entity.Property(e => e.StudentId).HasColumnName("student_id");
             entity.Property(e => e.TeacherId).HasColumnName("teacher_id");
+
+            entity.HasOne(d => d.Course).WithMany(p => p.Schedules)
+                .HasForeignKey(d => d.CourseId)
+                .HasConstraintName("FK_schedules_courses");
 
             entity.HasOne(d => d.Student).WithMany(p => p.ScheduleStudents)
                 .HasForeignKey(d => d.StudentId)
@@ -588,6 +588,9 @@ public partial class Sep490EduseenContext : DbContext
             entity.Property(e => e.Email)
                 .HasMaxLength(100)
                 .HasColumnName("email");
+            entity.Property(e => e.EmailConfirmed)
+                .HasDefaultValue(false)
+                .HasColumnName("email_confirmed");
             entity.Property(e => e.FirstName)
                 .HasMaxLength(50)
                 .HasColumnName("first_name");

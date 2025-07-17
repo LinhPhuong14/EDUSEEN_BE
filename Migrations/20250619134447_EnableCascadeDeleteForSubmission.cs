@@ -11,32 +11,8 @@ namespace Sep490_Eduseen_BE.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
-                name: "Categories",
-                columns: table => new
-                {
-                    category_id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    category_name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK__Categori__D54EE9B4C08CD780", x => x.category_id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Roles",
-                columns: table => new
-                {
-                    role_id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    role_name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK__Roles__760965CC83467F9F", x => x.role_id);
-                });
-
+           
+           
             migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
@@ -604,11 +580,6 @@ namespace Sep490_Eduseen_BE.Migrations
                 table: "Assignments",
                 column: "created_by");
 
-            migrationBuilder.CreateIndex(
-                name: "UQ__Categori__5189E2557A4064D3",
-                table: "Categories",
-                column: "category_name",
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_ChatMessages_course_id",
@@ -871,8 +842,6 @@ namespace Sep490_Eduseen_BE.Migrations
             migrationBuilder.DropTable(
                 name: "Courses");
 
-            migrationBuilder.DropTable(
-                name: "Categories");
 
             migrationBuilder.DropTable(
                 name: "Users");

@@ -430,7 +430,7 @@ public class SubmissionController : ControllerBase
             }
         }
 
-        zipStream.Position = 0; // reset stream before returning
+        zipStream.Position = 0; 
         return File(zipStream, "application/zip", $"Submission_{submissionId}.zip");
     }
 
