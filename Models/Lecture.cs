@@ -19,6 +19,8 @@ public partial class Lecture
 
     public int Order { get; set; }
 
+    public virtual ICollection<Assignment> Assignments { get; set; } = new List<Assignment>();
+
     public virtual Section Section { get; set; } = null!;
 
     public virtual ICollection<UserLectureProgress> UserLectureProgresses { get; set; } = new List<UserLectureProgress>();

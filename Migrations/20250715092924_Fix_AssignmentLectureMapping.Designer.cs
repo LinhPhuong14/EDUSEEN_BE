@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Sep490_Eduseen_BE.Models;
 
@@ -11,9 +12,11 @@ using Sep490_Eduseen_BE.Models;
 namespace Sep490_Eduseen_BE.Migrations
 {
     [DbContext(typeof(Sep490EduseenContext))]
-    partial class Sep490EduseenContextModelSnapshot : ModelSnapshot
+    [Migration("20250715092924_Fix_AssignmentLectureMapping")]
+    partial class Fix_AssignmentLectureMapping
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -250,16 +250,22 @@ namespace Sep490_Eduseen_BE.Services
         public async Task<HomeworkAnalysisDto> GetHomeworkAnalysisAsync(int assignmentId, int teacherId)
         {
             var assignment = await _context.Assignments
-                .Include(a => a.Course)
-                    .ThenInclude(c => c.Enrollments)
-                        .ThenInclude(e => e.Student)
+                .Include(a => a.Lecture)
+                    .ThenInclude(l => l.Section)
+                        .ThenInclude(s => s.Course)
+                            .ThenInclude(c => c.Enrollments)
+                                .ThenInclude(e => e.Student)
                 .FirstOrDefaultAsync(a => a.AssignmentId == assignmentId);
 
-            if (assignment == null) throw new Exception("Assignment not found");
-            if (assignment.Course.TeacherId != teacherId)
+            if (assignment == null)
+                throw new Exception("Assignment not found");
+
+            var course = assignment.Lecture.Section.Course;
+
+            if (course.TeacherId != teacherId)
                 throw new UnauthorizedAccessException("Bạn không có quyền xem phân tích bài tập này.");
 
-            var totalAssigned = assignment.Course.Enrollments.Count;
+            var totalAssigned = course.Enrollments.Count;
 
             var submissions = await _context.Submissions
                 .Where(s => s.AssignmentId == assignmentId)
@@ -269,12 +275,14 @@ namespace Sep490_Eduseen_BE.Services
 
             var totalSubmitted = submissions.Count;
 
-            var lateSubmissionCount = submissions.Count(s => s.SubmittedAt != null && assignment.DueDate != null && s.SubmittedAt > assignment.DueDate);
+            var lateSubmissionCount = submissions.Count(s =>
+                s.SubmittedAt != null && assignment.DueDate != null && s.SubmittedAt > assignment.DueDate);
 
             var gradedCount = submissions.Count(s => s.Grade != null);
 
             double completionRate = totalAssigned > 0 ? (double)totalSubmitted / totalAssigned : 0;
             double lateSubmissionRate = totalAssigned > 0 ? (double)lateSubmissionCount / totalAssigned : 0;
+
             double? averageGrade = submissions.Where(s => s.Grade != null).Any()
                 ? (double?)submissions.Where(s => s.Grade != null).Average(s => (double)s.Grade!)
                 : null;
@@ -291,14 +299,16 @@ namespace Sep490_Eduseen_BE.Services
                 .ToDictionary(g => g.Key, g => g.Count());
 
             var submittedStudentIds = submissions.Select(s => s.StudentId).ToHashSet();
-            var notSubmittedStudents = assignment.Course.Enrollments
+
+            var notSubmittedStudents = course.Enrollments
                 .Where(e => !submittedStudentIds.Contains(e.StudentId))
                 .Select(e => new StudentInfoDto
                 {
                     StudentId = e.StudentId,
-                    Name = (e.Student.FirstName ?? "") + " " + (e.Student.LastName ?? ""),
+                    Name = $"{e.Student.FirstName} {e.Student.LastName}".Trim(),
                     Email = e.Student.Email
-                }).ToList();
+                })
+                .ToList();
 
             return new HomeworkAnalysisDto
             {
@@ -314,6 +324,7 @@ namespace Sep490_Eduseen_BE.Services
                 NotSubmittedStudents = notSubmittedStudents
             };
         }
+
 
     }
 
