@@ -31,6 +31,8 @@ public static class DependencyInjectionExtensions
         services.AddScoped<IEnrollmentService, EnrollmentService>();
         services.AddScoped(typeof(RepositoryAsync<>));
         services.AddScoped<IReviewService, ReviewService>();
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<ICategoryService, CategoryService>();
 
         return services;
     }
