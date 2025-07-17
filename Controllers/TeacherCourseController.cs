@@ -28,6 +28,15 @@ namespace Sep490_Eduseen_BE.Controllers
             return Ok(course);
         }
 
+        // GET api/teacher/course
+        [HttpGet]
+        public async Task<IActionResult> GetCourses()
+        {
+            var teacherId = GetTeacherId();
+            var courses = await _service.GetCoursesAsync(teacherId);
+            return Ok(courses);
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateCourse([FromBody] CreateCourseDTO dto)
         {
