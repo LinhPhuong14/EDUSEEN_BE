@@ -87,8 +87,15 @@ namespace Sep490_Eduseen_BE.Controllers
             return Ok(response);
         }
 
-        //[Httpget("assignment/{assignmentid}/analysis")]
-        //public async task<iactionresult> gethomeworkanalysis(int assignmentid)
+        [HttpGet("{courseId}/assignments")]
+        public async Task<IActionResult> GetAssignments(int courseId)
+        {
+            var teacherId = GetTeacherId();
+            var assignments = await _service.GetAssignmentsAsync(courseId, teacherId);
+            return Ok(assignments);
+        }
+        //[HttpGet("assignment/{assignmentId}/analysis")]
+        //public async Task<IActionResult> GetHomeworkAnalysis(int assignmentId)
         //{
         //    var teacherid = getteacherid();
         //    var analysis = await _service.gethomeworkanalysisasync(assignmentid, teacherid);
