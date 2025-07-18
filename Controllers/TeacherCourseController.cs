@@ -97,9 +97,9 @@ namespace Sep490_Eduseen_BE.Controllers
         //[HttpGet("assignment/{assignmentId}/analysis")]
         //public async Task<IActionResult> GetHomeworkAnalysis(int assignmentId)
         //{
-        //    var teacherId = GetTeacherId(); 
-        //    var analysis = await _service.GetHomeworkAnalysisAsync(assignmentId, teacherId);
-        //    return Ok(analysis);
+        //    var teacherid = getteacherid();
+        //    var analysis = await _service.gethomeworkanalysisasync(assignmentid, teacherid);
+        //    return ok(analysis);
         //}
 
 

@@ -65,7 +65,6 @@ public partial class Sep490EduseenContext : DbContext
 
     public virtual DbSet<VideoCall> VideoCalls { get; set; }
 
-
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)

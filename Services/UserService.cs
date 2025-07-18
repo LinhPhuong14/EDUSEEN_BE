@@ -221,13 +221,13 @@ namespace Sep490_Eduseen_BE.Services
                 };
             }
         }
-        public async Task<ServiceResponse<IEnumerable<UserListDto>>> GetAllUsersAsync(CancellationToken cancellationToken = default)
+        public async Task<ServiceResponse<IEnumerable<UserDetailDto>>> GetAllUsersAsync(CancellationToken cancellationToken = default)
         {
             try
             {
                 var users = await _userRepository.GetAllUsersWithRoleAsync(cancellationToken);
 
-                var userDtos = users.Select(u => new UserListDto
+                var userDtos = users.Select(u => new UserDetailDto
                 {
                     UserId = u.UserId,
                     Username = u.Username,
@@ -235,10 +235,14 @@ namespace Sep490_Eduseen_BE.Services
                     FirstName = u.FirstName,
                     LastName = u.LastName,
                     IsActive = u.IsActive,
-                    RoleName = u.Role?.RoleName ?? "Unknown" // Lấy tên role
+                    RoleName = u.Role?.RoleName ?? "Unknown",
+                    CreatedAt = u.CreatedAt,
+                    UpdatedAt = u.UpdatedAt,
+                    AvatarUrl = u.AvatarUrl,
+                    RoleId = u.RoleId,
                 }).ToList();
 
-                return new ServiceResponse<IEnumerable<UserListDto>>
+                return new ServiceResponse<IEnumerable<UserDetailDto>>
                 {
                     Success = true,
                     Data = userDtos
@@ -246,7 +250,7 @@ namespace Sep490_Eduseen_BE.Services
             }
             catch (Exception ex)
             {
-                return new ServiceResponse<IEnumerable<UserListDto>>
+                return new ServiceResponse<IEnumerable<UserDetailDto>>
                 {
                     Success = false,
                     StatusCode = 500,
