@@ -86,12 +86,13 @@ namespace Sep490_Eduseen_BE.Controllers
             var response = await _rvservice.RespondToReviewAsync(reviewId, teacherId, dto.ResponseText);
             return Ok(response);
         }
-        //[HttpGet("assignment/{assignmentId}/analysis")]
-        //public async Task<IActionResult> GetHomeworkAnalysis(int assignmentId)
+
+        //[Httpget("assignment/{assignmentid}/analysis")]
+        //public async task<iactionresult> gethomeworkanalysis(int assignmentid)
         //{
-        //    var teacherId = GetTeacherId(); 
-        //    var analysis = await _service.GetHomeworkAnalysisAsync(assignmentId, teacherId);
-        //    return Ok(analysis);
+        //    var teacherid = getteacherid();
+        //    var analysis = await _service.gethomeworkanalysisasync(assignmentid, teacherid);
+        //    return ok(analysis);
         //}
 
 

@@ -9,7 +9,7 @@ namespace Sep490_Eduseen_BE.Services
         Task<ServiceResponse<bool>> UpdateUserAsync(int id, UpdateUserDTO updateUserDto, CancellationToken cancellationToken = default);
         Task<ServiceResponse<bool>> ActivateUserAsync(int id, CancellationToken cancellationToken = default);
         Task<ServiceResponse<bool>> DeactivateUserAsync(int id, CancellationToken cancellationToken = default);
-        Task<ServiceResponse<IEnumerable<UserListDto>>> GetAllUsersAsync(CancellationToken cancellationToken = default);
+        Task<ServiceResponse<IEnumerable<UserDetailDto>>> GetAllUsersAsync(CancellationToken cancellationToken = default);
         Task<ServiceResponse<UserDetailDto>> GetUserByIdAsync(int id, CancellationToken cancellationToken = default);
     }
 }

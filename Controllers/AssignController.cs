@@ -59,69 +59,80 @@ namespace Sep490_Eduseen_BE.Controllers
             return Ok(dto);
         }
 
-        //[HttpGet("student/{studentId}/assignments")]
-        //public async Task<IActionResult> GetAssignmentsForStudent(int studentId)
-        //{
-        //    var assignments = await _context.Assignments
-        //        .Include(a => a.Submissions)
-        //        .Include(a => a.Course)
-        //        .OrderByDescending(a => a.DueDate)
-        //        .Select(a => new
-        //        {
-        //            a.AssignmentId,
-        //            a.Title,
-        //            a.Description,
-        //            a.DueDate,
-        //            CourseTitle = a.Course.Title,
-        //            IsSubmitted = a.Submissions.Any(s => s.StudentId == studentId)
-        //        })
-        //        .ToListAsync();
+        [HttpGet("student/assignments")]
+        public async Task<IActionResult> GetAssignmentsForStudent()
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdStr, out int studentId))
+                return Unauthorized("Không thể xác định người dùng.");
 
-        //    return Ok(assignments);
-        //}
+            var assignments = await _context.Assignments
+                .Include(a => a.Submissions)
+                .Include(a => a.Lecture)
+                .OrderByDescending(a => a.DueDate)
+                .Select(a => new
+                {
+                    a.AssignmentId,
+                    a.Title,
+                    a.Description,
+                    a.DueDate,
+                    LectureTitle = a.Lecture.Title,
+                    IsSubmitted = a.Submissions.Any(s => s.StudentId == studentId)
+                })
+                .ToListAsync();
 
-        //[HttpPost("create")]
-        //public async Task<IActionResult> CreateAssignment([FromBody] AssignmentDto dto)
+            return Ok(assignments);
+        }
 
-        //{
-        //    var assignment = new Assignment
-        //    {
-        //        Title = dto.Title,
-        //        Description = dto.Description,
-        //        DueDate = dto.DueDate,
-        //        CreatedBy = dto.CreatedBy,
-        //        CourseId = dto.CourseId,
-        //        CreatedAt = DateTime.UtcNow
-        //    };
+        [HttpPost("create")]
+        public async Task<IActionResult> CreateAssignment([FromBody] AssignmentDto dto)
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdStr, out int userId))
+                return Unauthorized("Không thể xác định người dùng.");
 
-        //    _context.Assignments.Add(assignment);
-        //    await _context.SaveChangesAsync();
+            var lecture = await _context.Lectures
+                .Include(l => l.Section)
+                .FirstOrDefaultAsync(l => l.LectureId == dto.LectureId);
 
-        //    // 🔔 Gửi notification đến các học sinh trong class có course này
-        //    var studentIds = await _context.ClassCourses
-        //        .Where(cc => cc.CourseId == dto.CourseId)
-        //        .Join(_context.ClassStudents,
-        //              cc => cc.ClassId,
-        //              cs => cs.ClassId,
-        //              (cc, cs) => cs.StudentId)
-        //        .Distinct()
-        //        .ToListAsync();
+            if (lecture == null)
+                return NotFound("Không tìm thấy bài giảng để gán bài tập.");
 
-        //    var message = $"Bài tập mới: {assignment.Title} đã được giao cho bạn.";
-        //    var notifications = studentIds.Select(sid => new Notification
-        //    {
-        //        UserId = sid,
-        //        Message = message,
-        //        CreatedAt = DateTime.UtcNow,
-        //        IsRead = false
-        //    }).ToList();
+            var assignment = new Assignment
+            {
+                Title = dto.Title,
+                Description = dto.Description,
+                DueDate = dto.DueDate,
+                CreatedBy = userId,
+                LectureId = dto.LectureId,
+                CreatedAt = DateTime.UtcNow
+            };
 
-        //    _context.Notifications.AddRange(notifications);
-        //    await _context.SaveChangesAsync();
+            _context.Assignments.Add(assignment);
+            await _context.SaveChangesAsync();
 
-        //    return Ok(new { message = "Tạo bài tập và gửi thông báo thành công" });
-        //}
+            // Gửi thông báo đến học sinh thuộc course qua section
+            var courseId = lecture.Section.CourseId;
 
+            var studentIds = await _context.Enrollments
+                .Where(e => e.CourseId == courseId)
+                .Select(e => e.StudentId)
+                .Distinct()
+                .ToListAsync();
 
+            var message = $"Bài tập mới: {assignment.Title} đã được giao cho bạn.";
+            var notifications = studentIds.Select(sid => new Notification
+            {
+                UserId = sid,
+                Message = message,
+                CreatedAt = DateTime.UtcNow,
+                IsRead = false
+            }).ToList();
+
+            _context.Notifications.AddRange(notifications);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Tạo bài tập và gửi thông báo thành công" });
+        }
     }
 }
