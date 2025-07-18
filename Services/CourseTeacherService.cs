@@ -4,6 +4,7 @@ using Sep490_Eduseen_BE.Repositories;
 using Sep490_Eduseen_BE.Dtos;
 using Microsoft.EntityFrameworkCore;
 using Sep490_Eduseen_BE.Dtos.Teacher;
+using Sep490_Eduseen_BE.Dtos.Submission;
 
 namespace Sep490_Eduseen_BE.Services
 {
@@ -155,6 +156,109 @@ namespace Sep490_Eduseen_BE.Services
             return true;
         }
 
+        public async Task<IEnumerable<AssignmentOverviewDto>> GetAssignmentsAsync(int courseId, int teacherId)
+        {
+            var isOwner = await _context.Courses.AnyAsync(c => c.CourseId == courseId && c.TeacherId == teacherId);
+            if (!isOwner)
+                throw new UnauthorizedAccessException("Bạn không có quyền truy cập khoá học này.");
+
+            var totalAssigned = await _context.Enrollments.CountAsync(e => e.CourseId == courseId);
+
+            var assignments = await _context.Assignments
+                .Include(a => a.Lecture)
+                    .ThenInclude(l => l.Section)
+                .Where(a => a.Lecture.Section.CourseId == courseId)
+                .ToListAsync();
+
+            var assignmentIds = assignments.Select(a => a.AssignmentId).ToList();
+
+            var submissionStats = await _context.Submissions
+                .Where(s => assignmentIds.Contains(s.AssignmentId))
+                .GroupBy(s => s.AssignmentId)
+                .Select(g => new
+                {
+                    AssignmentId = g.Key,
+                    TotalSubmitted = g.Select(s => s.StudentId).Distinct().Count(),
+                    AverageGrade = g.Where(s => s.Grade != null).Average(s => (double?)s.Grade) ?? 0.0
+                })
+                .ToListAsync();
+
+            var statDict = submissionStats.ToDictionary(s => s.AssignmentId);
+
+            return assignments.Select(a =>
+            {
+                statDict.TryGetValue(a.AssignmentId, out var stats);
+                return new AssignmentOverviewDto
+                {
+                    AssignmentId = a.AssignmentId,
+                    Title = a.Title,
+                    SectionTitle = a.Lecture.Section.Title,
+                    LectureTitle = a.Lecture.Title,
+                    TotalAssigned = totalAssigned,
+                    TotalSubmitted = stats?.TotalSubmitted ?? 0,
+                    AverageGrade = stats?.AverageGrade
+                };
+            }).ToList();
+        }
+
+        public async Task<AssignmentSubmissionsDto> GetAssignmentSubmissionsAsync(int assignmentId, int teacherId)
+        {
+            var assignment = await _context.Assignments
+                .Include(a => a.Lecture)
+                    .ThenInclude(l => l.Section)
+                        .ThenInclude(s => s.Course)
+                .FirstOrDefaultAsync(a => a.AssignmentId == assignmentId);
+
+            if (assignment == null)
+                throw new Exception("Assignment not found");
+
+            if (assignment.Lecture.Section.Course.TeacherId != teacherId)
+                throw new UnauthorizedAccessException("Bạn không có quyền truy cập các bài nộp của bài tập này.");
+
+            var submissions = await _context.Submissions
+                .Include(s => s.Student)
+                .Where(s => s.AssignmentId == assignmentId)
+                .OrderByDescending(s => s.SubmittedAt)
+                .Select(s => new SubmissionListItemDto
+                {
+                    SubmissionId = s.SubmissionId,
+                    StudentId = s.StudentId,
+                    StudentName = (s.Student.FirstName ?? "") + " " + (s.Student.LastName ?? ""),
+                    AttemptNumber = s.AttemptNumber,
+                    SubmittedAt = s.SubmittedAt,
+                    Grade = s.Grade,
+                    Feedback = s.Feedback
+                })
+                .ToListAsync();
+
+            // Get students who have not submitted
+            var courseId = assignment.Lecture.Section.CourseId;
+            var enrolledStudents = await _context.Enrollments
+                .Where(e => e.CourseId == courseId)
+                .Include(e => e.Student)
+                .Select(e => e.Student)
+                .ToListAsync();
+
+            var submittedIds = submissions.Select(s => s.StudentId).ToHashSet();
+
+            var notSubmitted = enrolledStudents
+                .Where(u => !submittedIds.Contains(u.UserId))
+                .Select(u => new StudentInfoDto
+                {
+                    StudentId = u.UserId,
+                    Name = (u.FirstName ?? "") + " " + (u.LastName ?? ""),
+                    Email = u.Email
+                })
+                .ToList();
+
+            return new AssignmentSubmissionsDto
+            {
+                AssignmentId = assignment.AssignmentId,
+                Title = assignment.Title,
+                Submissions = submissions,
+                NotSubmittedStudents = notSubmitted
+            };
+        }
 
         public async Task<bool> DeleteCourseAsync(int courseId, int teacherId)
         {
