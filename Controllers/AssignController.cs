@@ -134,5 +134,43 @@ namespace Sep490_Eduseen_BE.Controllers
 
             return Ok(new { message = "Tạo bài tập và gửi thông báo thành công" });
         }
+
+        [HttpPut("{assignmentId}")]
+        public async Task<IActionResult> UpdateAssignment(int assignmentId, [FromBody] UpdateAssignmentDto dto)
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdStr, out int userId))
+                return Unauthorized("Không thể xác định người dùng.");
+
+            var assignment = await _context.Assignments.FirstOrDefaultAsync(a => a.AssignmentId == assignmentId);
+            if (assignment == null)
+                return NotFound("Không tìm thấy bài tập.");
+
+            // Chỉ cho phép người tạo bài tập hoặc teacher (role check có thể bổ sung sau) chỉnh sửa
+            if (assignment.CreatedBy != userId)
+            {
+                // TODO: kiểm tra quyền teacher nếu cần
+                return Forbid("Bạn không có quyền chỉnh sửa bài tập này.");
+            }
+
+            // Kiểm tra lecture hợp lệ nếu thay đổi
+            if (assignment.LectureId != dto.LectureId)
+            {
+                var lecture = await _context.Lectures.FindAsync(dto.LectureId);
+                if (lecture == null)
+                    return NotFound("Không tìm thấy bài giảng.");
+
+                assignment.LectureId = dto.LectureId;
+            }
+
+            assignment.Title = dto.Title;
+            assignment.Description = dto.Description;
+            assignment.DueDate = dto.DueDate;
+
+            _context.Assignments.Update(assignment);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Cập nhật bài tập thành công." });
+        }
     }
 }
