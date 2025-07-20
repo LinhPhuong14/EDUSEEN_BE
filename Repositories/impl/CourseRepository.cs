@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Sep490_Eduseen_BE.Models;
+using Sep490_Eduseen_BE.Dtos.Course;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -110,6 +112,134 @@ namespace Sep490_Eduseen_BE.Repositories.impl
                 .OrderByDescending(r => r.Rating)
                 .ThenByDescending(r => r.CreatedAt)
                 .Take(count)
+                .ToListAsync();
+        }
+
+        // Admin methods implementation
+        public async Task<IEnumerable<Course>> GetAllCoursesForAdminAsync()
+        {
+            return await _context.Courses
+                .Include(c => c.Category)
+                .Include(c => c.Teacher)
+                .Include(c => c.Sections)
+                .Include(c => c.Enrollments)
+                .Include(c => c.Reviews)
+                .OrderByDescending(c => c.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<Course> GetCourseByIdForAdminAsync(int courseId)
+        {
+            return await _context.Courses
+                .Include(c => c.Category)
+                .Include(c => c.Teacher)
+                .Include(c => c.Sections)
+                    .ThenInclude(s => s.Lectures)
+                .Include(c => c.Enrollments)
+                    .ThenInclude(e => e.Student)
+                .Include(c => c.Reviews)
+                    .ThenInclude(r => r.Student)
+                .FirstOrDefaultAsync(c => c.CourseId == courseId);
+        }
+
+        public async Task<CourseStatisticsDto> GetCourseStatisticsAsync()
+        {
+            var totalCourses = await _context.Courses.CountAsync();
+            var activeCourses = await _context.Courses.CountAsync(c => c.UpdatedAt != null);
+            var inactiveCourses = await _context.Courses.CountAsync(c => c.UpdatedAt == null);
+            var pendingCourses = await _context.Courses.CountAsync(c => c.UpdatedAt == null);
+            var totalStudents = await _context.Users.CountAsync(u => u.RoleId == 1); // Assuming RoleId 1 is Student
+            var totalTeachers = await _context.Users.CountAsync(u => u.RoleId == 3); // Assuming RoleId 3 is Teacher
+            var totalReviews = await _context.Reviews.CountAsync();
+            
+            // Tính average rating an toàn
+            var averageRating = totalReviews > 0 ? await _context.Reviews.AverageAsync(r => r.Rating) : 0;
+
+            var coursesByCategoryData = await _context.Courses
+                .Where(c => c.Category != null && !string.IsNullOrEmpty(c.Category.CategoryName))
+                .GroupBy(c => c.Category.CategoryName)
+                .Select(g => new { Category = g.Key, Count = g.Count() })
+                .ToListAsync();
+            var coursesByCategory = coursesByCategoryData.ToDictionary(x => x.Category, x => x.Count);
+
+            var coursesByLevelData = await _context.Courses
+                .Where(c => !string.IsNullOrEmpty(c.Level))
+                .GroupBy(c => c.Level)
+                .Select(g => new { Level = g.Key, Count = g.Count() })
+                .ToListAsync();
+            var coursesByLevel = coursesByLevelData.ToDictionary(x => x.Level, x => x.Count);
+
+            var monthlyStats = await _context.Courses
+                .Where(c => c.CreatedAt >= DateTime.UtcNow.AddMonths(-6))
+                .GroupBy(c => new { c.CreatedAt.Value.Year, c.CreatedAt.Value.Month })
+                .Select(g => new MonthlyCourseStats
+                {
+                    Month = $"{g.Key.Year}-{g.Key.Month:00}",
+                    NewCourses = g.Count(),
+                    NewStudents = 0 // This would need to be calculated separately
+                })
+                .ToListAsync();
+
+            return new CourseStatisticsDto
+            {
+                TotalCourses = totalCourses,
+                ActiveCourses = activeCourses,
+                InactiveCourses = inactiveCourses,
+                PendingCourses = pendingCourses,
+                TotalStudents = totalStudents,
+                TotalTeachers = totalTeachers,
+                AverageRating = averageRating,
+                TotalReviews = totalReviews,
+                CoursesByCategory = coursesByCategory,
+                CoursesByLevel = coursesByLevel,
+                MonthlyStats = monthlyStats
+            };
+        }
+
+        public async Task UpdateCourseAsync(Course course)
+        {
+            _context.Courses.Update(course);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteCourseAsync(int courseId)
+        {
+            var course = await _context.Courses.FindAsync(courseId);
+            if (course != null)
+            {
+                _context.Courses.Remove(course);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<IEnumerable<Course>> GetPendingCoursesAsync()
+        {
+            // Assuming pending courses are those that haven't been updated yet
+            return await _context.Courses
+                .Include(c => c.Category)
+                .Include(c => c.Teacher)
+                .Where(c => c.UpdatedAt == null)
+                .OrderByDescending(c => c.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Course>> GetCoursesByTeacherAsync(int teacherId)
+        {
+            return await _context.Courses
+                .Include(c => c.Category)
+                .Include(c => c.Teacher)
+                .Include(c => c.Sections)
+                .Include(c => c.Enrollments)
+                .Include(c => c.Reviews)
+                .Where(c => c.TeacherId == teacherId)
+                .OrderByDescending(c => c.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Enrollment>> GetEnrollmentsByCourseIdAsync(int courseId)
+        {
+            return await _context.Enrollments
+                .Where(e => e.CourseId == courseId)
                 .ToListAsync();
         }
     }

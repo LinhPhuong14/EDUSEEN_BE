@@ -1,4 +1,5 @@
 using Sep490_Eduseen_BE.Models;
+using Sep490_Eduseen_BE.Dtos.Course;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -19,5 +20,15 @@ namespace Sep490_Eduseen_BE.Repositories
         Task AddReviewAsync(Review review);
         Task UpdateReviewAsync(Review review);
         Task<IEnumerable<Review>> GetTopReviewsAsync(int count = 3);
+
+        // Admin methods
+        Task<IEnumerable<Course>> GetAllCoursesForAdminAsync();
+        Task<Course> GetCourseByIdForAdminAsync(int courseId);
+        Task<CourseStatisticsDto> GetCourseStatisticsAsync();
+        Task UpdateCourseAsync(Course course);
+        Task DeleteCourseAsync(int courseId);
+        Task<IEnumerable<Course>> GetPendingCoursesAsync();
+        Task<IEnumerable<Course>> GetCoursesByTeacherAsync(int teacherId);
+        Task<IEnumerable<Enrollment>> GetEnrollmentsByCourseIdAsync(int courseId);
     }
 } 

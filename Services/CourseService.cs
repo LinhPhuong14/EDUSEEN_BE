@@ -201,5 +201,74 @@ namespace Sep490_Eduseen_BE.Services
             var reviews = await _courseRepository.GetTopReviewsAsync(3);
             return _mapper.Map<IEnumerable<ReviewDto>>(reviews);
         }
+
+        // Admin methods implementation
+        public async Task<IEnumerable<AdminCourseDto>> GetAllCoursesForAdminAsync()
+        {
+            var courses = await _courseRepository.GetAllCoursesForAdminAsync();
+            return _mapper.Map<IEnumerable<AdminCourseDto>>(courses);
+        }
+
+        public async Task<AdminCourseDetailDto> GetCourseByIdForAdminAsync(int courseId)
+        {
+            var course = await _courseRepository.GetCourseByIdForAdminAsync(courseId);
+            if (course == null)
+            {
+                return null;
+            }
+            return _mapper.Map<AdminCourseDetailDto>(course);
+        }
+
+        public async Task<CourseStatisticsDto> GetCourseStatisticsAsync()
+        {
+            var statistics = await _courseRepository.GetCourseStatisticsAsync();
+            return statistics;
+        }
+
+        public async Task<(bool Success, string Message)> UpdateCourseStatusAsync(int courseId, bool isActive)
+        {
+            var course = await _courseRepository.GetCourseByIdAsync(courseId);
+            if (course == null)
+            {
+                return (false, "Course not found.");
+            }
+
+            // Sử dụng UpdatedAt để đánh dấu trạng thái thay vì IsActive
+            course.UpdatedAt = DateTime.UtcNow;
+            await _courseRepository.UpdateCourseAsync(course);
+
+            return (true, $"Course {(isActive ? "activated" : "deactivated")} successfully.");
+        }
+
+        public async Task<(bool Success, string Message)> DeleteCourseByAdminAsync(int courseId)
+        {
+            var course = await _courseRepository.GetCourseByIdAsync(courseId);
+            if (course == null)
+            {
+                return (false, "Course not found.");
+            }
+
+            // Check if course has enrollments
+            var enrollments = await _courseRepository.GetEnrollmentsByCourseIdAsync(courseId);
+            if (enrollments.Any())
+            {
+                return (false, "Cannot delete course with existing enrollments.");
+            }
+
+            await _courseRepository.DeleteCourseAsync(courseId);
+            return (true, "Course deleted successfully.");
+        }
+
+        public async Task<IEnumerable<AdminCourseDto>> GetPendingCoursesAsync()
+        {
+            var courses = await _courseRepository.GetPendingCoursesAsync();
+            return _mapper.Map<IEnumerable<AdminCourseDto>>(courses);
+        }
+
+        public async Task<IEnumerable<AdminCourseDto>> GetCoursesByTeacherAsync(int teacherId)
+        {
+            var courses = await _courseRepository.GetCoursesByTeacherAsync(teacherId);
+            return _mapper.Map<IEnumerable<AdminCourseDto>>(courses);
+        }
     }
 }

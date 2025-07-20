@@ -80,6 +80,17 @@ namespace Sep490_Eduseen_BE.Repositories.impl
             return true;
         }
 
+        public async Task<User> AddAsync(User user, CancellationToken cancellationToken = default)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            await _userRepository.AddAsync(user, cancellationToken);
+            return user;
+        }
+
         public async Task<bool> UpdateAsync(User user, CancellationToken cancellationToken = default)
         {
             if (user == null)

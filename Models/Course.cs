@@ -21,6 +21,8 @@ public partial class Course
 
     public DateTime? UpdatedAt { get; set; }
 
+
+
     public virtual Category? Category { get; set; }
 
     public virtual ICollection<ChatMessage> ChatMessages { get; set; } = new List<ChatMessage>();
