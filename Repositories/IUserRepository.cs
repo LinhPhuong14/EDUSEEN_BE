@@ -12,6 +12,7 @@ namespace Sep490_Eduseen_BE.Repositories
         Task<User> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
         Task<IEnumerable<User>> GetAsync(CancellationToken cancellationToken = default);
         Task<bool> CreateAsync(User user, string password, CancellationToken cancellationToken = default);
+        Task<User> AddAsync(User user, CancellationToken cancellationToken = default);
         Task<bool> UpdateAsync(User user, CancellationToken cancellationToken = default);
         Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default);
         Task<bool> CheckPasswordAsync(User user, string password);
