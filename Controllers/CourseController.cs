@@ -41,7 +41,15 @@ namespace Sep490_Eduseen_BE.Controllers
         [HttpGet("detail/{courseId:int}")]
         public async Task<IActionResult> GetCourseById(int courseId)
         {
-            var course = await _courseService.GetCourseByIdAsync(courseId);
+            // Lấy studentId từ token nếu user đã đăng nhập
+            int? studentId = null;
+            var studentIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrEmpty(studentIdString) && int.TryParse(studentIdString, out var parsedStudentId))
+            {
+                studentId = parsedStudentId;
+            }
+
+            var course = await _courseService.GetCourseByIdAsync(courseId, studentId);
             if (course == null)
             {
                 return NotFound();
@@ -192,6 +200,18 @@ namespace Sep490_Eduseen_BE.Controllers
         {
             var reviews = await _courseService.GetTopReviewsAsync();
             return Ok(reviews);
+        }
+
+        [AllowAnonymous]
+        [HttpGet("top-courses")]
+        public async Task<IActionResult> GetTopCourses([FromQuery] int count = 9)
+        {
+            int? studentId = null;
+            var studentIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (int.TryParse(studentIdString, out var sid)) studentId = sid;
+
+            var courses = await _courseService.GetTopCoursesAsync(count, studentId);
+            return Ok(courses);
         }
     }
 } 

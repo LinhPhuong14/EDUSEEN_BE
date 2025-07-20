@@ -220,6 +220,7 @@ public partial class Sep490EduseenContext : DbContext
 
             entity.Property(e => e.CourseId).HasColumnName("course_id");
             entity.Property(e => e.CategoryId).HasColumnName("category_id");
+            entity.Property(e => e.Cover).HasColumnName("cover");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnName("created_at");
@@ -530,12 +531,6 @@ public partial class Sep490EduseenContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Submissio__stude__0C85DE4D");
         });
-
-        modelBuilder.Entity<Submission>()
-                .HasMany(s => s.SubmissionFiles)
-                .WithOne(f => f.Submission)
-                .HasForeignKey(f => f.SubmissionId)
-                .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<SubmissionFile>(entity =>
         {

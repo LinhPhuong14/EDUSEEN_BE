@@ -21,6 +21,8 @@ public partial class Course
 
     public DateTime? UpdatedAt { get; set; }
 
+    public string? Cover { get; set; }
+
 
 
     public virtual Category? Category { get; set; }
