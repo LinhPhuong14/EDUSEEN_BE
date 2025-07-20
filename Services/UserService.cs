@@ -1,7 +1,9 @@
 ﻿using Sep490_Eduseen_BE.Dtos;
+using Sep490_Eduseen_BE.Dtos.User;
 using Sep490_Eduseen_BE.Models;
 using Sep490_Eduseen_BE.Repositories;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -221,13 +223,13 @@ namespace Sep490_Eduseen_BE.Services
                 };
             }
         }
-        public async Task<ServiceResponse<IEnumerable<UserListDto>>> GetAllUsersAsync(CancellationToken cancellationToken = default)
+        public async Task<ServiceResponse<IEnumerable<UserDetailDto>>> GetAllUsersAsync(CancellationToken cancellationToken = default)
         {
             try
             {
                 var users = await _userRepository.GetAllUsersWithRoleAsync(cancellationToken);
 
-                var userDtos = users.Select(u => new UserListDto
+                var userDtos = users.Select(u => new UserDetailDto
                 {
                     UserId = u.UserId,
                     Username = u.Username,
@@ -235,10 +237,14 @@ namespace Sep490_Eduseen_BE.Services
                     FirstName = u.FirstName,
                     LastName = u.LastName,
                     IsActive = u.IsActive,
-                    RoleName = u.Role?.RoleName ?? "Unknown" // Lấy tên role
+                    RoleName = u.Role?.RoleName ?? "Unknown",
+                    CreatedAt = u.CreatedAt,
+                    UpdatedAt = u.UpdatedAt,
+                    AvatarUrl = u.AvatarUrl,
+                    RoleId = u.RoleId,
                 }).ToList();
 
-                return new ServiceResponse<IEnumerable<UserListDto>>
+                return new ServiceResponse<IEnumerable<UserDetailDto>>
                 {
                     Success = true,
                     Data = userDtos
@@ -246,7 +252,7 @@ namespace Sep490_Eduseen_BE.Services
             }
             catch (Exception ex)
             {
-                return new ServiceResponse<IEnumerable<UserListDto>>
+                return new ServiceResponse<IEnumerable<UserDetailDto>>
                 {
                     Success = false,
                     StatusCode = 500,
@@ -300,6 +306,84 @@ namespace Sep490_Eduseen_BE.Services
                 };
             }
         }
+
+        public async Task<ServiceResponse<UserStatisticsDto>> GetUserStatisticsAsync(CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var allUsers = await _userRepository.GetAllUsersWithRoleAsync(cancellationToken);
+                
+                var now = DateTime.UtcNow;
+                var startOfMonth = new DateTime(now.Year, now.Month, 1);
+                var startOfWeek = now.AddDays(-(int)now.DayOfWeek);
+
+                var statistics = new UserStatisticsDto
+                {
+                    TotalUsers = allUsers.Count(),
+                    ActiveUsers = allUsers.Count(u => u.IsActive == true),
+                    InactiveUsers = allUsers.Count(u => u.IsActive == false),
+                    Students = allUsers.Count(u => u.Role?.RoleName == "Student"),
+                    Teachers = allUsers.Count(u => u.Role?.RoleName == "Teacher"),
+                    Admins = allUsers.Count(u => u.Role?.RoleName == "Admin"),
+                    NewUsersThisMonth = allUsers.Count(u => u.CreatedAt >= startOfMonth),
+                    NewUsersThisWeek = allUsers.Count(u => u.CreatedAt >= startOfWeek),
+                    AverageUsersPerDay = allUsers.Count() > 0 ? (double)allUsers.Count() / 30 : 0
+                };
+
+                // Users by role
+                var roleGroups = allUsers.GroupBy(u => u.Role?.RoleName ?? "Unknown")
+                    .Select(g => new UserRoleCountDto
+                    {
+                        RoleName = g.Key,
+                        Count = g.Count(),
+                        Percentage = allUsers.Count() > 0 ? (double)g.Count() / allUsers.Count() * 100 : 0
+                    }).ToList();
+                statistics.UsersByRole = roleGroups;
+
+                // Users by status
+                var statusGroups = allUsers.GroupBy(u => u.IsActive == true ? "Active" : "Inactive")
+                    .Select(g => new UserStatusCountDto
+                    {
+                        Status = g.Key,
+                        Count = g.Count(),
+                        Percentage = allUsers.Count() > 0 ? (double)g.Count() / allUsers.Count() * 100 : 0
+                    }).ToList();
+                statistics.UsersByStatus = statusGroups;
+
+                // User registrations by month (last 12 months)
+                var months = Enumerable.Range(0, 12)
+                    .Select(i => now.AddMonths(-i))
+                    .Select(d => new { Year = d.Year, Month = d.Month, MonthName = d.ToString("MMM yyyy") })
+                    .Reverse()
+                    .ToList();
+
+                var registrationsByMonth = months.Select(m => new UserRegistrationDto
+                {
+                    Month = m.MonthName,
+                    Count = allUsers.Count(u => u.CreatedAt.HasValue && u.CreatedAt.Value.Year == m.Year && u.CreatedAt.Value.Month == m.Month)
+                }).ToList();
+                statistics.UserRegistrationsByMonth = registrationsByMonth;
+
+                return new ServiceResponse<UserStatisticsDto>
+                {
+                    Success = true,
+                    Data = statistics
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResponse<UserStatisticsDto>
+                {
+                    Success = false,
+                    StatusCode = 500,
+                    ErrorMessage = "An error occurred while retrieving user statistics."
+                };
+            }
+        }
+
+
+
+
 
     }
 }

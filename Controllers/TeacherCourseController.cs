@@ -28,6 +28,15 @@ namespace Sep490_Eduseen_BE.Controllers
             return Ok(course);
         }
 
+        // GET api/teacher/course
+        [HttpGet]
+        public async Task<IActionResult> GetCourses()
+        {
+            var teacherId = GetTeacherId();
+            var courses = await _service.GetCoursesAsync(teacherId);
+            return Ok(courses);
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateCourse([FromBody] CreateCourseDTO dto)
         {
@@ -77,12 +86,20 @@ namespace Sep490_Eduseen_BE.Controllers
             var response = await _rvservice.RespondToReviewAsync(reviewId, teacherId, dto.ResponseText);
             return Ok(response);
         }
+
+        [HttpGet("{courseId}/assignments")]
+        public async Task<IActionResult> GetAssignments(int courseId)
+        {
+            var teacherId = GetTeacherId();
+            var assignments = await _service.GetAssignmentsAsync(courseId, teacherId);
+            return Ok(assignments);
+        }
         //[HttpGet("assignment/{assignmentId}/analysis")]
         //public async Task<IActionResult> GetHomeworkAnalysis(int assignmentId)
         //{
-        //    var teacherId = GetTeacherId(); 
-        //    var analysis = await _service.GetHomeworkAnalysisAsync(assignmentId, teacherId);
-        //    return Ok(analysis);
+        //    var teacherid = getteacherid();
+        //    var analysis = await _service.gethomeworkanalysisasync(assignmentid, teacherid);
+        //    return ok(analysis);
         //}
 
 

@@ -20,5 +20,14 @@ namespace Sep490_Eduseen_BE.Services
         Task<IEnumerable<ReviewDto>> GetTopReviewsAsync();
         Task<IEnumerable<CourseDto>> GetCoursesByCategoryAsync(int categoryId, int? studentId = null);
         Task<IEnumerable<CourseDto>> GetTopCoursesAsync(int count, int? studentId = null);
+
+        // Admin methods
+        Task<IEnumerable<AdminCourseDto>> GetAllCoursesForAdminAsync();
+        Task<AdminCourseDetailDto> GetCourseByIdForAdminAsync(int courseId);
+        Task<CourseStatisticsDto> GetCourseStatisticsAsync();
+        Task<(bool Success, string Message)> UpdateCourseStatusAsync(int courseId, bool isActive);
+        Task<(bool Success, string Message)> DeleteCourseByAdminAsync(int courseId);
+        Task<IEnumerable<AdminCourseDto>> GetPendingCoursesAsync();
+        Task<IEnumerable<AdminCourseDto>> GetCoursesByTeacherAsync(int teacherId);
     }
 } 

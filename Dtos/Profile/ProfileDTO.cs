@@ -63,6 +63,7 @@ namespace Sep490_Eduseen_BE.Dtos
         public string? LastName { get; set; }
         public bool? IsActive { get; set; }
         public string RoleName { get; set; } = null!;
+         public int RoleId { get; set; }
     }
 
     public class UserDetailDto : UserListDto

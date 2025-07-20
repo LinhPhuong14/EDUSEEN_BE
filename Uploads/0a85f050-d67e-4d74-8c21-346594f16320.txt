@@ -1,0 +1,195 @@
+-- ************************************************************
+--  SampleDataSeed_Snake_v2.sql
+--  Seed dữ liệu mẫu (phù hợp khi bảng Users đã có 2 bản ghi)
+--  Mapping RoleId: 1 = User (Student), 2 = Admin, 3 = Teacher
+-- ************************************************************
+
+USE [sep490_eduseen_v2];
+GO
+
+/* ===========================================================
+   1. ROLES (giả sử đã có, chạy idempotent)
+   =========================================================== */
+IF NOT EXISTS (SELECT 1 FROM dbo.Roles WHERE role_id = 3)
+BEGIN
+    SET IDENTITY_INSERT dbo.Roles ON;
+    INSERT INTO dbo.Roles (role_id, role_name)
+    VALUES (1, N'User'),
+           (2, N'Admin'),
+           (3, N'Teacher');
+    SET IDENTITY_INSERT dbo.Roles OFF;
+END
+GO
+
+/* ===========================================================
+   2. CATEGORIES
+   =========================================================== */
+SET IDENTITY_INSERT dbo.Categories ON;
+INSERT INTO dbo.Categories (category_id, category_name, cover, hoverCover)
+VALUES (1, N'Lập trình', NULL, NULL),
+       (2, N'Thiết kế', NULL, NULL),
+       (3, N'Cơ sở dữ liệu', NULL, NULL);
+SET IDENTITY_INSERT dbo.Categories OFF;
+GO
+
+/* ===========================================================
+   3. USERS  (bắt đầu từ user_id = 3)
+   =========================================================== */
+SET IDENTITY_INSERT dbo.Users ON;
+INSERT INTO dbo.Users (
+    user_id, username, email, password_hash, role_id,
+    first_name, last_name, is_active, email_confirmed,
+    created_at, updated_at)
+VALUES
+    -- Teachers
+    (3, N'teacher01', N'teacher01@example.com', N'hashed_pw_1', 3,
+     N'Lê', N'Thành', 1, 1, GETDATE(), GETDATE()),
+    (4, N'teacher02', N'teacher02@example.com', N'hashed_pw_2', 3,
+     N'Nguyễn', N'Hoà', 1, 1, GETDATE(), GETDATE()),
+    -- Admin
+    (5, N'admin01', N'admin01@example.com', N'hashed_pw_admin', 2,
+     N'Quản', N'Trị', 1, 1, GETDATE(), GETDATE()),
+    -- Students
+    (6, N'student01', N'student01@example.com', N'hashed_pw_3', 1,
+     N'Phạm', N'Anh', 1, 1, GETDATE(), GETDATE()),
+    (7, N'student02', N'student02@example.com', N'hashed_pw_4', 1,
+     N'Đỗ', N'Hà', 1, 1, GETDATE(), GETDATE()),
+    (8, N'student03', N'student03@example.com', N'hashed_pw_5', 1,
+     N'Trần', N'Sơn', 1, 1, GETDATE(), GETDATE());
+SET IDENTITY_INSERT dbo.Users OFF;
+GO
+
+/* ===========================================================
+   4. COURSES (teacher_id tham chiếu 3 hoặc 4)
+   =========================================================== */
+SET IDENTITY_INSERT dbo.Courses ON;
+INSERT INTO dbo.Courses (
+    course_id, title, description, category_id, [level],
+    teacher_id, created_at, updated_at)
+VALUES
+    (1, N'C# Cơ bản', N'Khoá nhập môn C# và .NET', 1, N'Beginner', 3, GETDATE(), GETDATE()),
+    (2, N'JavaScript Fundamentals', N'JS từ cơ bản tới ES6+', 1, N'Beginner', 3, GETDATE(), GETDATE()),
+    (3, N'UI/UX Design Principles', N'Nền tảng thiết kế giao diện', 2, N'Intermediate', 4, GETDATE(), GETDATE()),
+    (4, N'Database Design', N'Mô hình hoá dữ liệu quan hệ', 3, N'Intermediate', 4, GETDATE(), GETDATE()),
+    (5, N'Advanced Node.js', N'Xây dựng API & Microservices', 1, N'Advanced', 3, GETDATE(), GETDATE());
+SET IDENTITY_INSERT dbo.Courses OFF;
+GO
+
+/* ===========================================================
+   5. SECTIONS (10 bản ghi)
+   =========================================================== */
+SET IDENTITY_INSERT dbo.Sections ON;
+INSERT INTO dbo.Sections (section_id, course_id, title, [order])
+VALUES
+    (1, 1, N'Giới thiệu C#', 1),
+    (2, 1, N'Biến & Kiểu dữ liệu', 2),
+    (3, 2, N'Giới thiệu JavaScript', 1),
+    (4, 2, N'Hàm & Scope', 2),
+    (5, 3, N'Tổng quan UI', 1),
+    (6, 3, N'Màu sắc & Typography', 2),
+    (7, 4, N'ERM Basics', 1),
+    (8, 4, N'Chuyển đổi sang Schema', 2),
+    (9, 5, N'Event Loop', 1),
+    (10,5, N'Performance Tuning', 2);
+SET IDENTITY_INSERT dbo.Sections OFF;
+GO
+
+/* ===========================================================
+   6. LECTURES (15 bản ghi)
+   =========================================================== */
+SET IDENTITY_INSERT dbo.Lectures ON;
+INSERT INTO dbo.Lectures (
+    lecture_id, section_id, title, content_type, content_url,
+    duration, [order])
+VALUES
+    (1, 1, N'Tổng quan .NET',             N'video', N'https://cdn.example.com/vid/net-intro.mp4', 600, 1),
+    (2, 1, N'Cài đặt môi trường',         N'video', N'https://cdn.example.com/vid/setup.mp4',     420, 2),
+    (3, 2, N'Khai báo biến',              N'pdf',   N'https://cdn.example.com/doc/variables.pdf',  0,   1),
+    (4, 2, N'Kiểu dữ liệu cơ bản',        N'video', N'https://cdn.example.com/vid/types.mp4',      540, 2),
+    (5, 3, N'Lịch sử JavaScript',         N'video', N'https://cdn.example.com/vid/js-history.mp4', 480, 1),
+    (6, 3, N'ECMAScript và trình duyệt',  N'video', N'https://cdn.example.com/vid/es-browser.mp4', 500, 2),
+    (7, 4, N'Hoisting & Scope',           N'video', N'https://cdn.example.com/vid/scope.mp4',      550, 1),
+    (8, 5, N'Wireframe là gì?',           N'video', N'https://cdn.example.com/vid/wireframe.mp4', 480, 1),
+    (9, 6, N'Lý thuyết màu sắc',          N'video', N'https://cdn.example.com/vid/color.mp4',      560, 1),
+    (10,6, N'Typography cơ bản',          N'pdf',   N'https://cdn.example.com/doc/typography.pdf', 0,   2),
+    (11,7, N'Entity Relationship Model',  N'video', N'https://cdn.example.com/vid/erm.mp4',        600, 1),
+    (12,8, N'Chuyển ERM sang SQL',        N'video', N'https://cdn.example.com/vid/erm-sql.mp4',    650, 1),
+    (13,9, N'Hiểu Event Loop',            N'video', N'https://cdn.example.com/vid/event-loop.mp4', 620, 1),
+    (14,9, N'Callback vs Promise',        N'video', N'https://cdn.example.com/vid/callbacks.mp4',  640, 2),
+    (15,10,N'Tối ưu hiệu năng Node',      N'video', N'https://cdn.example.com/vid/node-perf.mp4',  700, 1);
+SET IDENTITY_INSERT dbo.Lectures OFF;
+GO
+
+/* ===========================================================
+   7. ASSIGNMENTS (30 bản ghi)
+   =========================================================== */
+SET IDENTITY_INSERT dbo.Assignments ON;
+INSERT INTO dbo.Assignments (
+    assignment_id, title, description, due_date,
+    created_by, created_at, lecture_id)
+VALUES
+    -- Lecture 1 (teacher_id 3)
+    (1, N'Hello World',       N'Viết chương trình in "Hello World".', DATEADD(day,7,GETDATE()), 3, GETDATE(), 1),
+    (2, N'Chạy thử dotnet',   N'Tạo project console và biên dịch.',      DATEADD(day,8,GETDATE()), 3, GETDATE(), 1),
+    -- Lecture 2 (teacher_id 3)
+    (3, N'Cấu hình IDE',      N'Cài VS Code và plugin C#.',              DATEADD(day,5,GETDATE()), 3, GETDATE(), 2),
+    (4, N'Debug cơ bản',      N'Đặt breakpoint & quan sát biến.',        DATEADD(day,6,GETDATE()), 3, GETDATE(), 2),
+    -- Lecture 3 (teacher_id 3)
+    (5, N'Khai báo biến',     N'Liệt kê 5 kiểu dữ liệu C#.',             DATEADD(day,5,GETDATE()), 3, GETDATE(), 3),
+    (6, N'const vs readonly', N'Phân biệt const & readonly.',            DATEADD(day,6,GETDATE()), 3, GETDATE(), 3),
+    -- Lecture 4 (teacher_id 3)
+    (7, N'Casting',           N'Chuyển đổi kiểu dữ liệu.',               DATEADD(day,5,GETDATE()), 3, GETDATE(), 4),
+    (8, N'Nullable Types',    N'Sử dụng kiểu nullable.',                 DATEADD(day,7,GETDATE()), 3, GETDATE(), 4),
+    -- Lecture 5 (teacher_id 3)
+    (9,  N'Mốc lịch sử JS',   N'Tìm 3 dấu mốc quan trọng.',              DATEADD(day,4,GETDATE()), 3, GETDATE(), 5),
+    (10, N'JS Engines',       N'V8 vs SpiderMonkey.',                    DATEADD(day,6,GETDATE()), 3, GETDATE(), 5),
+    -- Lecture 6 (teacher_id 3)
+    (11, N'ES6 Features',     N'Arrow function, let/const.',             DATEADD(day,7,GETDATE()), 3, GETDATE(), 6),
+    (12, N'Module import',    N'Sử dụng import/export.',                 DATEADD(day,8,GETDATE()), 3, GETDATE(), 6),
+    -- Lecture 7 (teacher_id 3)
+    (13, N'Hoisting Demo',    N'Thử nghiệm hoisting.',                   DATEADD(day,5,GETDATE()), 3, GETDATE(), 7),
+    (14, N'Closure',          N'Giải thích closure bằng ví dụ.',         DATEADD(day,6,GETDATE()), 3, GETDATE(), 7),
+    -- Lecture 8 (teacher_id 4)
+    (15, N'Wireframe Phân tích', N'Chú thích wireframe login.',          DATEADD(day,7,GETDATE()), 4, GETDATE(), 8),
+    (16, N'Sketch Wireframe', N'Tạo wireframe trang chủ.',              DATEADD(day,9,GETDATE()), 4, GETDATE(), 8),
+    -- Lecture 9 (teacher_id 4)
+    (17, N'Phối màu',         N'Thiết kế bảng màu ứng dụng.',           DATEADD(day,10,GETDATE()),4, GETDATE(), 9),
+    (18, N'Typography Map',   N'Lựa chọn font cho heading.',            DATEADD(day,11,GETDATE()),4, GETDATE(), 9),
+    -- Lecture 10 (teacher_id 4)
+    (19, N'Typography Quiz',  N'5 câu hỏi về typography.',              DATEADD(day,7,GETDATE()), 4, GETDATE(), 10),
+    (20, N'Thực hành Font',   N'Thiết kế banner với font đã chọn.',     DATEADD(day,8,GETDATE()), 4, GETDATE(), 10),
+    -- Lecture 11 (teacher_id 4)
+    (21, N'ERD vẽ thực tế',   N'Vẽ ERD cho e-commerce.',                DATEADD(day,6,GETDATE()), 4, GETDATE(), 11),
+    (22, N'Chuẩn hoá dữ liệu',N'Áp dụng 3NF.',                           DATEADD(day,8,GETDATE()), 4, GETDATE(), 11),
+    -- Lecture 12 (teacher_id 4)
+    (23, N'Tạo bảng SQL',     N'Tạo bảng theo ERD.',                    DATEADD(day,5,GETDATE()), 4, GETDATE(), 12),
+    (24, N'Khoá ngoại',       N'Thêm ràng buộc FK.',                     DATEADD(day,6,GETDATE()), 4, GETDATE(), 12),
+    -- Lecture 13 (teacher_id 3)
+    (25, N'Vẽ Event Loop',    N'Sơ đồ event loop.',                      DATEADD(day,4,GETDATE()), 3, GETDATE(), 13),
+    (26, N'Thực hành Promise',N'Chuyển callback sang promise.',          DATEADD(day,5,GETDATE()), 3, GETDATE(), 13),
+    -- Lecture 14 (teacher_id 3)
+    (27, N'Promise vs Async', N'So sánh hai cách xử lý async.',         DATEADD(day,6,GETDATE()), 3, GETDATE(), 14),
+    (28, N'Error Handling',   N'Thử/catch với async.',                   DATEADD(day,7,GETDATE()), 3, GETDATE(), 14),
+    -- Lecture 15 (teacher_id 3)
+    (29, N'Profile CPU',      N'Dùng node --prof.',                     DATEADD(day,8,GETDATE()), 3, GETDATE(), 15),
+    (30, N'Memory Leak',      N'Xác định & sửa leak.',                   DATEADD(day,9,GETDATE()), 3, GETDATE(), 15);
+SET IDENTITY_INSERT dbo.Assignments OFF;
+GO
+
+/* ===========================================================
+   8. ENROLLMENTS (students 6-8)
+   =========================================================== */
+SET IDENTITY_INSERT dbo.Enrollments ON;
+INSERT INTO dbo.Enrollments (enrollment_id, student_id, course_id, enrolled_at, status)
+VALUES
+    (1, 6, 1, GETDATE(), N'active'),
+    (2, 6, 2, GETDATE(), N'active'),
+    (3, 7, 3, GETDATE(), N'active'),
+    (4, 7, 4, GETDATE(), N'active'),
+    (5, 8, 1, GETDATE(), N'active'),
+    (6, 8, 3, GETDATE(), N'active'),
+    (7, 8, 5, GETDATE(), N'active');
+SET IDENTITY_INSERT dbo.Enrollments OFF;
+GO
+
+-- *****************   KẾT THÚC   ****************************
