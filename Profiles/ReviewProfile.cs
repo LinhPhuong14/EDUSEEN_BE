@@ -13,7 +13,9 @@ namespace Sep490_Eduseen_BE.Profiles
                 .ForMember(dest => dest.CourseName, opt => opt.MapFrom(src => src.Course.Title))
                 .ForMember(dest => dest.CourseDescription, opt => opt.MapFrom(src => src.Course.Description))
                 .ForMember(dest => dest.UserAvatarUrl, opt => opt.MapFrom(src => src.Student.AvatarUrl))
-                .ForMember(dest => dest.Rating, opt => opt.MapFrom(src => src.Rating));
+                .ForMember(dest => dest.Rating, opt => opt.MapFrom(src => src.Rating))
+                .ForMember(dest => dest.Comment, opt => opt.MapFrom(src => src.Comment))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt));
         }
     }
 } 

@@ -38,8 +38,10 @@ namespace Sep490_Eduseen_BE.Repositories.impl
             return await _context.Courses
                 .Include(c => c.Category)
                 .Include(c => c.Teacher)
-                .Include(c => c.Sections)
-                    .ThenInclude(s => s.Lectures)
+                .Include(c => c.Sections.OrderBy(s => s.Order))
+                    .ThenInclude(s => s.Lectures.OrderBy(l => l.Order))
+                .Include(c => c.Reviews)
+                    .ThenInclude(r => r.Student)
                 .FirstOrDefaultAsync(c => c.CourseId == courseId);
         }
 
@@ -68,6 +70,12 @@ namespace Sep490_Eduseen_BE.Repositories.impl
         {
             return await _context.Enrollments
                 .AnyAsync(e => e.StudentId == studentId && e.CourseId == courseId);
+        }
+
+        public async Task<bool> IsUserEnrolledWithStatusAsync(int studentId, int courseId, string status)
+        {
+            return await _context.Enrollments
+                .AnyAsync(e => e.StudentId == studentId && e.CourseId == courseId && e.Status == status);
         }
 
         public async Task<IEnumerable<Lecture>> GetLecturesByCourseIdAsync(int courseId)
@@ -111,6 +119,44 @@ namespace Sep490_Eduseen_BE.Repositories.impl
                 .ThenByDescending(r => r.CreatedAt)
                 .Take(count)
                 .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Course>> GetCoursesByCategoryAsync(int categoryId)
+        {
+            return await _context.Courses
+                .Where(c => c.CategoryId == categoryId)
+                .Include(c => c.Category)
+                .Include(c => c.Teacher)
+                .Include(c => c.Reviews)
+                .Include(c => c.Sections)
+                    .ThenInclude(s => s.Lectures)
+                .Include(c => c.Favorites)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Course>> GetTopCoursesAsync(int count)
+        {
+            return await _context.Courses
+                .Include(c => c.Category)
+                .Include(c => c.Teacher)
+                .Include(c => c.Reviews)
+                .Include(c => c.Sections)
+                    .ThenInclude(s => s.Lectures)
+                .Include(c => c.Favorites)
+                .OrderByDescending(c => c.Reviews.Count)
+                .ThenByDescending(c => c.Reviews.Any() ? c.Reviews.Average(r => r.Rating) : 0)
+                .Take(count)
+                .ToListAsync();
+        }
+
+        public async Task<Dictionary<int, bool>> GetLectureCompletionStatusAsync(int studentId, int courseId)
+        {
+            var progressData = await _context.UserLectureProgresses
+                .Where(p => p.UserId == studentId && p.Lecture.Section.CourseId == courseId)
+                .Select(p => new { p.LectureId, p.IsCompleted })
+                .ToListAsync();
+
+            return progressData.ToDictionary(p => p.LectureId, p => p.IsCompleted ?? false);
         }
     }
 } 
