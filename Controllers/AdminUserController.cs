@@ -35,10 +35,10 @@ namespace Sep490_Eduseen_BE.Controllers
         }
 
         [HttpGet("statistics")]
-        public async Task<IActionResult> GetUserStatistics(CancellationToken cancellationToken)
+        public async Task<IActionResult> GetUserStatistics([FromQuery] int? year, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Admin requesting user statistics");
-            var response = await _userService.GetUserStatisticsAsync(cancellationToken);
+            _logger.LogInformation($"Admin requesting user statistics for year {year}");
+            var response = await _userService.GetUserStatisticsAsync(year, cancellationToken);
             if (!response.Success)
             {
                 return StatusCode(response.StatusCode, new { Error = response.ErrorMessage });
