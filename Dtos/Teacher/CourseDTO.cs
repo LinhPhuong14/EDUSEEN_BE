@@ -12,6 +12,7 @@ namespace Sep490_Eduseen_BE.Dtos
         public int TeacherId { get; set; }
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public string? Cover { get; set; } // Thêm trường cover
         public List<SectionDTO> Sections { get; set; } = new();
     }
 
@@ -41,6 +42,7 @@ namespace Sep490_Eduseen_BE.Dtos
         public string? Description { get; set; }
         public int? CategoryId { get; set; }
         public string? Level { get; set; }
+        public string? Cover { get; set; } // Thêm trường cover
         public List<CreateSectionDTO> Sections { get; set; } = new();
     }
 
@@ -66,6 +68,7 @@ namespace Sep490_Eduseen_BE.Dtos
         public string? Description { get; set; }
         public int? CategoryId { get; set; }
         public string? Level { get; set; }
+        public string? Cover { get; set; } // Thêm trường cover
         public List<UpdateSectionDTO> Sections { get; set; } = new();
     }
 
