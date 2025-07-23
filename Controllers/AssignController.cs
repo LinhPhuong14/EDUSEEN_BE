@@ -98,41 +98,82 @@ namespace Sep490_Eduseen_BE.Controllers
             if (lecture == null)
                 return NotFound("Không tìm thấy bài giảng để gán bài tập.");
 
-            var assignment = new Assignment
+            // Kiểm tra xem lecture đã có assignment chưa
+            var oldAssignment = await _context.Assignments
+                .FirstOrDefaultAsync(a => a.LectureId == dto.LectureId);
+
+            if (oldAssignment != null)
             {
-                Title = dto.Title,
-                Description = dto.Description,
-                DueDate = dto.DueDate,
-                CreatedBy = userId,
-                LectureId = dto.LectureId,
-                CreatedAt = DateTime.UtcNow
-            };
+                // Ghi đè: cập nhật lại assignment cũ
+                oldAssignment.Title = dto.Title;
+                oldAssignment.Description = dto.Description;
+                oldAssignment.DueDate = dto.DueDate;
+                oldAssignment.CreatedBy = userId;
+                oldAssignment.CreatedAt = DateTime.UtcNow;
 
-            _context.Assignments.Add(assignment);
-            await _context.SaveChangesAsync();
+                _context.Assignments.Update(oldAssignment);
+                await _context.SaveChangesAsync();
 
-            // Gửi thông báo đến học sinh thuộc course qua section
-            var courseId = lecture.Section.CourseId;
+                // Gửi thông báo đến học sinh thuộc course qua section
+                var courseId = lecture.Section.CourseId;
+                var studentIds = await _context.Enrollments
+                    .Where(e => e.CourseId == courseId)
+                    .Select(e => e.StudentId)
+                    .Distinct()
+                    .ToListAsync();
 
-            var studentIds = await _context.Enrollments
-                .Where(e => e.CourseId == courseId)
-                .Select(e => e.StudentId)
-                .Distinct()
-                .ToListAsync();
+                var message = $"Bài tập mới: {oldAssignment.Title} đã được cập nhật cho bạn.";
+                var notifications = studentIds.Select(sid => new Notification
+                {
+                    UserId = sid,
+                    Message = message,
+                    CreatedAt = DateTime.UtcNow,
+                    IsRead = false
+                }).ToList();
 
-            var message = $"Bài tập mới: {assignment.Title} đã được giao cho bạn.";
-            var notifications = studentIds.Select(sid => new Notification
+                _context.Notifications.AddRange(notifications);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = "Cập nhật bài tập thành công (đã ghi đè bài tập cũ)" });
+            }
+            else
             {
-                UserId = sid,
-                Message = message,
-                CreatedAt = DateTime.UtcNow,
-                IsRead = false
-            }).ToList();
+                // Chưa có assignment, tạo mới như cũ
+                var assignment = new Assignment
+                {
+                    Title = dto.Title,
+                    Description = dto.Description,
+                    DueDate = dto.DueDate,
+                    CreatedBy = userId,
+                    LectureId = dto.LectureId,
+                    CreatedAt = DateTime.UtcNow
+                };
 
-            _context.Notifications.AddRange(notifications);
-            await _context.SaveChangesAsync();
+                _context.Assignments.Add(assignment);
+                await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Tạo bài tập và gửi thông báo thành công" });
+                // Gửi thông báo đến học sinh thuộc course qua section
+                var courseId = lecture.Section.CourseId;
+                var studentIds = await _context.Enrollments
+                    .Where(e => e.CourseId == courseId)
+                    .Select(e => e.StudentId)
+                    .Distinct()
+                    .ToListAsync();
+
+                var message = $"Bài tập mới: {assignment.Title} đã được giao cho bạn.";
+                var notifications = studentIds.Select(sid => new Notification
+                {
+                    UserId = sid,
+                    Message = message,
+                    CreatedAt = DateTime.UtcNow,
+                    IsRead = false
+                }).ToList();
+
+                _context.Notifications.AddRange(notifications);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = "Tạo bài tập và gửi thông báo thành công" });
+            }
         }
 
         [HttpPut("{assignmentId}")]

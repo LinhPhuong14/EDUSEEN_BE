@@ -244,6 +244,16 @@ namespace Sep490_Eduseen_BE.Repositories.impl
                 })
                 .ToListAsync();
 
+            // Thêm logic tính số lượng khóa học mới theo từng tháng trong năm hiện tại (12 tháng)
+            var now = DateTime.UtcNow;
+            int year = now.Year;
+            var courseRegistrationsByMonth = new List<int>();
+            for (int m = 1; m <= 12; m++)
+            {
+                int count = await _context.Courses.CountAsync(c => c.CreatedAt.HasValue && c.CreatedAt.Value.Year == year && c.CreatedAt.Value.Month == m);
+                courseRegistrationsByMonth.Add(count);
+            }
+
             return new CourseStatisticsDto
             {
                 TotalCourses = totalCourses,
@@ -256,7 +266,8 @@ namespace Sep490_Eduseen_BE.Repositories.impl
                 TotalReviews = totalReviews,
                 CoursesByCategory = coursesByCategory,
                 CoursesByLevel = coursesByLevel,
-                MonthlyStats = monthlyStats
+                MonthlyStats = monthlyStats,
+                CourseRegistrationsByMonth = courseRegistrationsByMonth // Gán số liệu mới
             };
         }
 

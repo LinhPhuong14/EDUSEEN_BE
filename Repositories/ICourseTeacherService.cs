@@ -12,7 +12,7 @@ namespace Sep490_Eduseen_BE.Repositories
         Task<CourseAnalysisDTO> GetCourseAnalysisAsync(int courseId, int teacherId);
         Task<IEnumerable<AssignmentOverviewDto>> GetAssignmentsAsync(int courseId, int teacherId);
         Task<AssignmentSubmissionsDto> GetAssignmentSubmissionsAsync(int assignmentId, int teacherId);
-        //Task<HomeworkAnalysisDto> GetHomeworkAnalysisAsync(int assignmentId, int teacherId);
+        Task<AssignmentAnalysisDTO> GetHomeworkAnalysisAsync(int assignmentId, int teacherId);
         Task<IEnumerable<CourseDTO>> GetCoursesAsync(int teacherId);
     }
 }

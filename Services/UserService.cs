@@ -307,7 +307,7 @@ namespace Sep490_Eduseen_BE.Services
             }
         }
 
-        public async Task<ServiceResponse<UserStatisticsDto>> GetUserStatisticsAsync(CancellationToken cancellationToken = default)
+        public async Task<ServiceResponse<UserStatisticsDto>> GetUserStatisticsAsync(int? year = null, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -350,11 +350,10 @@ namespace Sep490_Eduseen_BE.Services
                     }).ToList();
                 statistics.UsersByStatus = statusGroups;
 
-                // User registrations by month (last 12 months)
-                var months = Enumerable.Range(0, 12)
-                    .Select(i => now.AddMonths(-i))
-                    .Select(d => new { Year = d.Year, Month = d.Month, MonthName = d.ToString("MMM yyyy") })
-                    .Reverse()
+                // User registrations by month (đúng 12 tháng của năm truyền vào)
+                int targetYear = year ?? now.Year;
+                var months = Enumerable.Range(1, 12)
+                    .Select(m => new { Year = targetYear, Month = m, MonthName = $"Th{m}" })
                     .ToList();
 
                 var registrationsByMonth = months.Select(m => new UserRegistrationDto
