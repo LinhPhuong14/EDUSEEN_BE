@@ -22,6 +22,7 @@ namespace Sep490_Eduseen_BE.Services
             var course = await _context.Courses
                 .Include(c => c.Sections)
                     .ThenInclude(s => s.Lectures)
+                        .ThenInclude(l => l.Assignments)
                 .FirstOrDefaultAsync(c => c.CourseId == courseId && c.TeacherId == teacherId);
 
             if (course == null) return null;
@@ -35,6 +36,7 @@ namespace Sep490_Eduseen_BE.Services
                 .Where(c => c.TeacherId == teacherId)
                 .Include(c => c.Sections)
                     .ThenInclude(s => s.Lectures)
+                        .ThenInclude(l => l.Assignments)
                 .ToListAsync();
 
             return courses.Select(ToDto);
@@ -75,6 +77,7 @@ namespace Sep490_Eduseen_BE.Services
             var course = await _context.Courses
                 .Include(c => c.Sections)
                     .ThenInclude(s => s.Lectures)
+                        .ThenInclude(l => l.Assignments)
                 .FirstOrDefaultAsync(c => c.CourseId == courseId && c.TeacherId == teacherId);
 
             if (course == null) return false;
@@ -92,6 +95,10 @@ namespace Sep490_Eduseen_BE.Services
             var sectionsToRemove = course.Sections.Where(s => !dtoSectionIds.Contains(s.SectionId)).ToList();
             foreach (var section in sectionsToRemove)
             {
+                foreach (var lecture in section.Lectures)
+                {
+                    _context.Assignments.RemoveRange(lecture.Assignments);
+                }
                 _context.Lectures.RemoveRange(section.Lectures);
                 _context.Sections.Remove(section);
             }
@@ -108,6 +115,10 @@ namespace Sep490_Eduseen_BE.Services
                     var dtoLectureIds = sectionDto.Lectures.Where(l => l.LectureId.HasValue).Select(l => l.LectureId.Value).ToHashSet();
 
                     var lecturesToRemove = section.Lectures.Where(l => !dtoLectureIds.Contains(l.LectureId)).ToList();
+                    foreach (var lecture in lecturesToRemove)
+                    {
+                        _context.Assignments.RemoveRange(lecture.Assignments);
+                    }
                     _context.Lectures.RemoveRange(lecturesToRemove);
 
                     foreach (var lectureDto in sectionDto.Lectures)
@@ -265,13 +276,18 @@ namespace Sep490_Eduseen_BE.Services
             var course = await _context.Courses
                 .Include(c => c.Sections)
                     .ThenInclude(s => s.Lectures)
+                        .ThenInclude(l => l.Assignments)
                 .FirstOrDefaultAsync(c => c.CourseId == courseId && c.TeacherId == teacherId);
 
             if (course == null) return false;
 
-            // Xóa lectures, sections, rồi course
+            // Xóa assignments, lectures, sections, rồi course
             foreach (var section in course.Sections)
             {
+                foreach (var lecture in section.Lectures)
+                {
+                    _context.Assignments.RemoveRange(lecture.Assignments);
+                }
                 _context.Lectures.RemoveRange(section.Lectures);
             }
             _context.Sections.RemoveRange(course.Sections);
@@ -358,7 +374,8 @@ namespace Sep490_Eduseen_BE.Services
                             ContentType = l.ContentType,
                             ContentUrl = l.ContentUrl,
                             Duration = l.Duration,
-                            Order = l.Order
+                            Order = l.Order,
+                            AssignmentId = l.Assignments.FirstOrDefault()?.AssignmentId
                         }).ToList()
                 }).ToList()
         };

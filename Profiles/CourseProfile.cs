@@ -60,7 +60,8 @@ namespace Sep490_Eduseen_BE.Profiles
                 .ForMember(dest => dest.Order, opt => opt.MapFrom(src => src.Order));
             CreateMap<Lecture, LectureDto>()
                 .ForMember(dest => dest.ContentType, opt => opt.MapFrom(src => src.ContentType))
-                .ForMember(dest => dest.Order, opt => opt.MapFrom(src => src.Order));
+                .ForMember(dest => dest.Order, opt => opt.MapFrom(src => src.Order))
+                .ForMember(dest => dest.AssignmentId, opt => opt.MapFrom(src => src.Assignments.FirstOrDefault().AssignmentId));
         }
     }
 } 
