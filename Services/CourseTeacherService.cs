@@ -271,7 +271,28 @@ namespace Sep490_Eduseen_BE.Services
 
             if (course == null) return false;
 
-            // Xóa lectures, sections, rồi course
+            // Xoá các bản ghi liên quan trước khi xoá Course
+            var enrollments = _context.Enrollments.Where(e => e.CourseId == courseId);
+            _context.Enrollments.RemoveRange(enrollments);
+
+            var reviews = _context.Reviews.Where(r => r.CourseId == courseId);
+            _context.Reviews.RemoveRange(reviews);
+
+            // Xoá UserLectureProgress liên quan đến các bài giảng của khoá học
+            var lectureIds = course.Sections.SelectMany(s => s.Lectures).Select(l => l.LectureId).ToList();
+            var userLectureProgresses = _context.UserLectureProgresses.Where(p => lectureIds.Contains(p.LectureId));
+            _context.UserLectureProgresses.RemoveRange(userLectureProgresses);
+
+            var favorites = _context.Favorites.Where(f => f.CourseId == courseId);
+            _context.Favorites.RemoveRange(favorites);
+
+            var schedules = _context.Schedules.Where(s => s.CourseId == courseId);
+            _context.Schedules.RemoveRange(schedules);
+
+            var classCourses = _context.ClassCourses.Where(cc => cc.CourseId == courseId);
+            _context.ClassCourses.RemoveRange(classCourses);
+
+            // Xoá lectures, sections, rồi course
             foreach (var section in course.Sections)
             {
                 _context.Lectures.RemoveRange(section.Lectures);
