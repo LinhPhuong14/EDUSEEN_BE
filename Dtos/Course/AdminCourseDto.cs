@@ -53,6 +53,7 @@ namespace Sep490_Eduseen_BE.Dtos.Course
         public Dictionary<string, int> CoursesByCategory { get; set; } = new Dictionary<string, int>();
         public Dictionary<string, int> CoursesByLevel { get; set; } = new Dictionary<string, int>();
         public List<MonthlyCourseStats> MonthlyStats { get; set; } = new List<MonthlyCourseStats>();
+        public List<int> CourseRegistrationsByMonth { get; set; } = new List<int>(); // Thêm trường này
     }
 
     public class MonthlyCourseStats
