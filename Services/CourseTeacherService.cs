@@ -48,6 +48,7 @@ namespace Sep490_Eduseen_BE.Services
                 Description = dto.Description,
                 CategoryId = dto.CategoryId,
                 Level = dto.Level,
+                Cover = dto.Cover, // Lưu cover
                 TeacherId = teacherId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
@@ -83,6 +84,7 @@ namespace Sep490_Eduseen_BE.Services
             course.Description = dto.Description;
             course.CategoryId = dto.CategoryId;
             course.Level = dto.Level;
+            course.Cover = dto.Cover; // Lưu cover
             course.UpdatedAt = DateTime.UtcNow;
 
             var sectionDict = course.Sections.ToDictionary(s => s.SectionId);
@@ -337,30 +339,27 @@ namespace Sep490_Eduseen_BE.Services
             Description = course.Description,
             CategoryId = course.CategoryId,
             Level = course.Level,
+            Cover = course.Cover, // Trả về cover
             TeacherId = course.TeacherId,
             CreatedAt = course.CreatedAt,
             UpdatedAt = course.UpdatedAt,
-            Sections = course.Sections
-                .OrderBy(s => s.Order)
-                .Select(s => new SectionDTO
+            Sections = course.Sections.OrderBy(s => s.Order).Select(s => new SectionDTO
+            {
+                SectionId = s.SectionId,
+                CourseId = s.CourseId,
+                Title = s.Title,
+                Order = s.Order,
+                Lectures = s.Lectures.OrderBy(l => l.Order).Select(l => new LectureDTO
                 {
-                    SectionId = s.SectionId,
-                    CourseId = s.CourseId,
-                    Title = s.Title,
-                    Order = s.Order,
-                    Lectures = s.Lectures
-                        .OrderBy(l => l.Order)
-                        .Select(l => new LectureDTO
-                        {
-                            LectureId = l.LectureId,
-                            SectionId = l.SectionId,
-                            Title = l.Title,
-                            ContentType = l.ContentType,
-                            ContentUrl = l.ContentUrl,
-                            Duration = l.Duration,
-                            Order = l.Order
-                        }).ToList()
+                    LectureId = l.LectureId,
+                    SectionId = l.SectionId,
+                    Title = l.Title,
+                    ContentType = l.ContentType,
+                    ContentUrl = l.ContentUrl,
+                    Duration = l.Duration,
+                    Order = l.Order
                 }).ToList()
+            }).ToList()
         };
         //public async Task<HomeworkAnalysisDto> GetHomeworkAnalysisAsync(int assignmentId, int teacherId)
         //{
