@@ -24,6 +24,7 @@ namespace Sep490_Eduseen_BE.Repositories
         Task<IEnumerable<Course>> GetCoursesByCategoryAsync(int categoryId);
         Task<IEnumerable<Course>> GetTopCoursesAsync(int count);
         Task<Dictionary<int, bool>> GetLectureCompletionStatusAsync(int studentId, int courseId);
+        Task<List<int>> GetFavoriteCourseIdsAsync(int studentId, List<int> courseIds);
 
         // Admin methods
         Task<IEnumerable<Course>> GetAllCoursesForAdminAsync();

@@ -34,6 +34,7 @@ namespace Sep490_Eduseen_BE.Dtos
         public string? ContentUrl { get; set; }
         public int? Duration { get; set; }
         public int Order { get; set; }
+        public int? AssignmentId { get; set; } // ID của assignment liên quan đến lecture này
     }
 
     public class CreateCourseDTO
@@ -60,6 +61,7 @@ namespace Sep490_Eduseen_BE.Dtos
         public string? ContentUrl { get; set; }
         public int? Duration { get; set; }
         public int Order { get; set; }
+        public int? AssignmentId { get; set; } // ID của assignment liên quan đến lecture này
     }
 
     public class UpdateCourseDTO
@@ -88,6 +90,7 @@ namespace Sep490_Eduseen_BE.Dtos
         public string? ContentUrl { get; set; }
         public int? Duration { get; set; }
         public int Order { get; set; }
+        public int? AssignmentId { get; set; } // ID của assignment liên quan đến lecture này
     }
 
     public class CourseAnalysisDTO

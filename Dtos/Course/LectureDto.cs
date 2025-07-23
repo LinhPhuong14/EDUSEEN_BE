@@ -9,5 +9,6 @@ namespace Sep490_Eduseen_BE.Dtos.Course
         public string? ContentType { get; set; }
         public int Order { get; set; }
         public bool? IsCompleted { get; set; } // Trạng thái hoàn thành của lecture
+        public int? AssignmentId { get; set; } // ID của assignment liên quan đến lecture này
     }
 } 

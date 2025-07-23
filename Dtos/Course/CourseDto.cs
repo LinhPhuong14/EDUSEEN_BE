@@ -14,5 +14,7 @@ namespace Sep490_Eduseen_BE.Dtos.Course
         public bool IsFavorite { get; set; }
         public double Rating { get; set; }
         public double TotalTime { get; set; }
+        public int TotalLectures { get; set; } // Tổng số bài giảng
+        public int CompletedLectures { get; set; } // Số bài giảng đã hoàn thành
     }
 } 
