@@ -292,6 +292,20 @@ namespace Sep490_Eduseen_BE.Services
             var classCourses = _context.ClassCourses.Where(cc => cc.CourseId == courseId);
             _context.ClassCourses.RemoveRange(classCourses);
 
+            // Lấy toàn bộ lectureId thuộc course
+            // var lectureIds = course.Sections.SelectMany(s => s.Lectures).Select(l => l.LectureId).ToList(); // XÓA DÒNG NÀY
+
+            // Xoá tất cả assignment của các lecture này
+            var assignments = _context.Assignments.Where(a => lectureIds.Contains(a.LectureId)).ToList();
+
+            // Xoá tất cả submission của các assignment này
+            var assignmentIds = assignments.Select(a => a.AssignmentId).ToList();
+            var submissions = _context.Submissions.Where(s => assignmentIds.Contains(s.AssignmentId));
+            _context.Submissions.RemoveRange(submissions);
+
+            // Xoá assignment
+            _context.Assignments.RemoveRange(assignments);
+
             // Xoá lectures, sections, rồi course
             foreach (var section in course.Sections)
             {
