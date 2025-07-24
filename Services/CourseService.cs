@@ -372,5 +372,7 @@ namespace Sep490_Eduseen_BE.Services
             var courses = await _courseRepository.GetCoursesByTeacherAsync(teacherId);
             return _mapper.Map<IEnumerable<AdminCourseDto>>(courses);
         }
+
+
     }
 }
