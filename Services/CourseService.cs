@@ -270,5 +270,13 @@ namespace Sep490_Eduseen_BE.Services
             var courses = await _courseRepository.GetCoursesByTeacherAsync(teacherId);
             return _mapper.Map<IEnumerable<AdminCourseDto>>(courses);
         }
+
+        public async Task<IEnumerable<CourseDto>> GetCoursesByCategoryAsync(int categoryId, int? studentId)
+        {
+            // Lấy danh sách khóa học theo categoryId, studentId có thể dùng cho filter nâng cao
+            var courses = await _courseRepository.GetAllCoursesAsync();
+            var filtered = courses.Where(c => c.CategoryId == categoryId);
+            return _mapper.Map<IEnumerable<CourseDto>>(filtered);
+        }
     }
 }

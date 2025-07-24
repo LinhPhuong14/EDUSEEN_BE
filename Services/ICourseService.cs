@@ -15,6 +15,7 @@ namespace Sep490_Eduseen_BE.Services
         Task<IEnumerable<CourseDto>> GetCompletedCoursesAsync(int studentId);
         Task<(bool Success, string Message)> RateCourseAsync(int studentId, int courseId, RateCourseRequestDto request);
         Task<IEnumerable<ReviewDto>> GetTopReviewsAsync();
+        Task<IEnumerable<CourseDto>> GetCoursesByCategoryAsync(int categoryId, int? studentId);
 
         // Admin methods
         Task<IEnumerable<AdminCourseDto>> GetAllCoursesForAdminAsync();

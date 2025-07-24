@@ -8,6 +8,7 @@ using System;
 using Sep490_Eduseen_BE.Models;
 using Microsoft.AspNetCore.Http;
 using Sep490_Eduseen_BE.Dtos.Category;
+using System.Security.Claims;
 
 namespace Sep490_Eduseen_BE.Controllers
 {
@@ -17,10 +18,14 @@ namespace Sep490_Eduseen_BE.Controllers
     {
         private readonly ICategoryService _categoryService;
         private readonly IWebHostEnvironment _env;
-        public CategoryController(ICategoryService categoryService, IWebHostEnvironment env)
+        private readonly ICourseService _courseService;
+
+        // Hợp nhất constructor, inject đủ các service cần thiết
+        public CategoryController(ICategoryService categoryService, IWebHostEnvironment env, ICourseService courseService)
         {
             _categoryService = categoryService;
             _env = env;
+            _courseService = courseService;
         }
 
         [HttpGet]
@@ -100,6 +105,20 @@ namespace Sep490_Eduseen_BE.Controllers
             if (category == null) return NotFound();
             await _categoryService.DeleteCategoryAsync(category);
             return Ok();
+        }
+
+        [HttpGet("{categoryId:int}/courses")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetCoursesByCategory(int categoryId)
+        {
+            int? studentId = null;
+            var studentIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (int.TryParse(studentIdString, out var sid))
+            {
+                studentId = sid;
+            }
+            var courses = await _courseService.GetCoursesByCategoryAsync(categoryId, studentId);
+            return Ok(courses);
         }
     }
 } 
