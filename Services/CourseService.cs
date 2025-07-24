@@ -4,6 +4,11 @@ using Sep490_Eduseen_BE.Dtos.Review;
 using Sep490_Eduseen_BE.Models;
 using Sep490_Eduseen_BE.Repositories;
 using Sep490_Eduseen_BE.Exceptions;
+using System.Linq;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace Sep490_Eduseen_BE.Services
@@ -42,10 +47,64 @@ namespace Sep490_Eduseen_BE.Services
             return _mapper.Map<CourseDetailDto>(course);
         }
 
+        public async Task<CourseDetailDto> GetCourseByIdAsync(int courseId, int? studentId)
+        {
+            var course = await _courseRepository.GetCourseByIdAsync(courseId);
+            if (course == null)
+            {
+                return null;
+            }
+
+            var courseDetailDto = _mapper.Map<CourseDetailDto>(course);
+
+            // Nếu có studentId, lấy thông tin completion status của lectures và kiểm tra enrollment
+            if (studentId.HasValue)
+            {
+                var completionStatus = await _courseRepository.GetLectureCompletionStatusAsync(studentId.Value, courseId);
+                
+                // Cập nhật IsCompleted cho từng lecture
+                foreach (var section in courseDetailDto.Sections)
+                {
+                    foreach (var lecture in section.Lectures)
+                    {
+                        lecture.IsCompleted = completionStatus.ContainsKey(lecture.LectureId) ? completionStatus[lecture.LectureId] : false;
+                    }
+                }
+
+                // Kiểm tra enrollment status với status = "Enrolled"
+                courseDetailDto.IsEnrolled = await _courseRepository.IsUserEnrolledWithStatusAsync(studentId.Value, courseId, "Enrolled");
+            }
+            else
+            {
+                courseDetailDto.IsEnrolled = false;
+            }
+
+            return courseDetailDto;
+        }
+
         public async Task<IEnumerable<CourseDto>> GetMyCoursesAsync(int studentId)
         {
             var courses = await _courseRepository.GetEnrolledCoursesByStudentIdAsync(studentId);
-            return _mapper.Map<IEnumerable<CourseDto>>(courses);
+            var courseDtos = _mapper.Map<List<CourseDto>>(courses);
+
+            // Lấy danh sách courseId mà user đã favorite
+            var favoriteCourseIds = courses
+                .Select(c => c.CourseId)
+                .ToList();
+            var favoriteIds = await _courseRepository.GetFavoriteCourseIdsAsync(studentId, favoriteCourseIds);
+
+            foreach (var dto in courseDtos)
+            {
+                // Lấy tổng số lecture
+                var lectures = await _courseRepository.GetLecturesByCourseIdAsync(dto.CourseId);
+                dto.TotalLectures = lectures.Count();
+                // Lấy số lecture đã hoàn thành
+                dto.CompletedLectures = await _courseRepository.GetCompletedLecturesCountAsync(studentId, dto.CourseId);
+                // Set isFavorite
+                dto.IsFavorite = favoriteIds.Contains(dto.CourseId);
+            }
+
+            return courseDtos;
         }
 
         public async Task<(bool Success, string Message)> SaveFavoriteCourseAsync(int studentId, int courseId)
@@ -200,6 +259,49 @@ namespace Sep490_Eduseen_BE.Services
         {
             var reviews = await _courseRepository.GetTopReviewsAsync(3);
             return _mapper.Map<IEnumerable<ReviewDto>>(reviews);
+        }
+
+        public async Task<IEnumerable<CourseDto>> GetCoursesByCategoryAsync(int categoryId, int? studentId = null)
+        {
+            var courses = await _courseRepository.GetCoursesByCategoryAsync(categoryId);
+            var courseDtos = _mapper.Map<List<CourseDto>>(courses);
+
+            if (studentId.HasValue)
+            {
+                foreach (var dto in courseDtos)
+                {
+                    var courseEntity = courses.FirstOrDefault(c => c.CourseId == dto.CourseId);
+                    if (courseEntity != null)
+                    {
+                        dto.IsFavorite = courseEntity.Favorites.Any(f => f.StudentId == studentId.Value);
+                    }
+                }
+            }
+            else
+            {
+                foreach (var dto in courseDtos)
+                {
+                    dto.IsFavorite = false;
+                }
+            }
+
+            return courseDtos;
+        }
+
+        public async Task<IEnumerable<CourseDto>> GetTopCoursesAsync(int count, int? studentId = null)
+        {
+            var courses = await _courseRepository.GetTopCoursesAsync(count);
+            var courseDtos = _mapper.Map<List<CourseDto>>(courses);
+
+            if (studentId.HasValue)
+            {
+                foreach (var dto in courseDtos)
+                {
+                    var entity = courses.FirstOrDefault(c => c.CourseId == dto.CourseId);
+                    dto.IsFavorite = entity.Favorites.Any(f => f.StudentId == studentId.Value);
+                }
+            }
+            return courseDtos;
         }
 
         // Admin methods implementation

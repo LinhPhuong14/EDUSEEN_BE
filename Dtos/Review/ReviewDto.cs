@@ -8,6 +8,8 @@ namespace Sep490_Eduseen_BE.Dtos.Review
         public string CourseName { get; set; } = null!;
         public string? CourseDescription { get; set; }
         public string? UserAvatarUrl { get; set; }
-        public int Rating { get; set; }
+        public double Rating { get; set; }
+        public string? Comment { get; set; }
+        public DateTime? CreatedAt { get; set; }
     }
 }

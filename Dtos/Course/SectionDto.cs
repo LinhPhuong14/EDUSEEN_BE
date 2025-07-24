@@ -6,6 +6,7 @@ namespace Sep490_Eduseen_BE.Dtos.Course
     {
         public int SectionId { get; set; }
         public string Title { get; set; }
+        public int Order { get; set; }
         public List<LectureDto> Lectures { get; set; } = new List<LectureDto>();
     }
 } 

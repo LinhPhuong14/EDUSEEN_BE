@@ -161,6 +161,13 @@ namespace Sep490_Eduseen_BE.Services
                 return new AuthResponseDTO { IsAuthSuccessful = false, ErrorMessage = "Email đã tồn tại." };
             }
 
+            // Kiểm tra username đã tồn tại
+            var existingUserName = await _userRepository.GetByUserNameAsync(registerDTO.UserName);
+            if (existingUserName != null)
+            {
+                return new AuthResponseDTO { IsAuthSuccessful = false, ErrorMessage = "Tên người dùng đã tồn tại." };
+            }
+
             // Tạo OTP và lưu vào DB
             var otp = new Random().Next(100000, 999999).ToString();
             await _otpService.SaveOtpAsync(registerDTO.Email, otp);

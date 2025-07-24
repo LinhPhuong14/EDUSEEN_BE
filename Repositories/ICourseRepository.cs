@@ -14,12 +14,17 @@ namespace Sep490_Eduseen_BE.Repositories
         Task<Favorite> GetFavoriteAsync(int studentId, int courseId);
         Task AddFavoriteAsync(Favorite favorite);
         Task<bool> IsUserEnrolledAsync(int studentId, int courseId);
+        Task<bool> IsUserEnrolledWithStatusAsync(int studentId, int courseId, string status);
         Task<IEnumerable<Lecture>> GetLecturesByCourseIdAsync(int courseId);
         Task<int> GetCompletedLecturesCountAsync(int studentId, int courseId);
         Task<Review> GetReviewAsync(int studentId, int courseId);
         Task AddReviewAsync(Review review);
         Task UpdateReviewAsync(Review review);
         Task<IEnumerable<Review>> GetTopReviewsAsync(int count = 3);
+        Task<IEnumerable<Course>> GetCoursesByCategoryAsync(int categoryId);
+        Task<IEnumerable<Course>> GetTopCoursesAsync(int count);
+        Task<Dictionary<int, bool>> GetLectureCompletionStatusAsync(int studentId, int courseId);
+        Task<List<int>> GetFavoriteCourseIdsAsync(int studentId, List<int> courseIds);
 
         // Admin methods
         Task<IEnumerable<Course>> GetAllCoursesForAdminAsync();
