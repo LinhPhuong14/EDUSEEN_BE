@@ -98,7 +98,7 @@ namespace Sep490_Eduseen_BE.Controllers
             if (lecture == null)
                 return NotFound("Không tìm thấy bài giảng để gán bài tập.");
 
-            // Kiểm tra xem lecture đã có assignment chưa
+            // Kiểm tra xem lecture đã có assignment hay chưa
             var oldAssignment = await _context.Assignments
                 .FirstOrDefaultAsync(a => a.LectureId == dto.LectureId);
 
