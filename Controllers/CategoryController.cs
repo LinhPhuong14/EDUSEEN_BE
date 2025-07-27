@@ -9,6 +9,7 @@ using Sep490_Eduseen_BE.Models;
 using Microsoft.AspNetCore.Http;
 using Sep490_Eduseen_BE.Dtos.Category;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace Sep490_Eduseen_BE.Controllers
 {
@@ -37,63 +38,53 @@ namespace Sep490_Eduseen_BE.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateCategory([FromForm] CategoryCreateDto dto)
+        public async Task<IActionResult> CreateCategory([FromBody] CategoryCreateWithUrlDto dto)
         {
-            var category = new Category { CategoryName = dto.CategoryName };
-            if (dto.Cover != null && !string.IsNullOrEmpty(dto.Cover.FileName))
+            // Validation
+            if (string.IsNullOrWhiteSpace(dto.CategoryName))
             {
-                var fileName = Guid.NewGuid() + Path.GetExtension(dto.Cover.FileName);
-                var filePath = Path.Combine(_env.WebRootPath ?? string.Empty, "uploads/category", fileName);
-                Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await dto.Cover.CopyToAsync(stream);
-                }
-                category.Cover = "/uploads/category/" + fileName;
+                return BadRequest(new { message = "Tên danh mục không được để trống" });
             }
-            if (dto.HoverCover != null && !string.IsNullOrEmpty(dto.HoverCover.FileName))
+
+            var category = new Category { CategoryName = dto.CategoryName.Trim() };
+            
+            // Xử lý URL từ S3
+            if (!string.IsNullOrEmpty(dto.Cover))
             {
-                var fileName = Guid.NewGuid() + Path.GetExtension(dto.HoverCover.FileName);
-                var filePath = Path.Combine(_env.WebRootPath ?? string.Empty, "uploads/category", fileName);
-                Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await dto.HoverCover.CopyToAsync(stream);
-                }
-                category.HoverCover = "/uploads/category/" + fileName;
+                category.Cover = dto.Cover;
             }
+            if (!string.IsNullOrEmpty(dto.HoverCover))
+            {
+                category.HoverCover = dto.HoverCover;
+            }
+            
             await _categoryService.AddCategoryAsync(category);
             return Ok(category);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCategory(int id, [FromForm] CategoryCreateDto dto)
+        public async Task<IActionResult> UpdateCategory(int id, [FromBody] CategoryCreateWithUrlDto dto)
         {
+            // Validation
+            if (string.IsNullOrWhiteSpace(dto.CategoryName))
+            {
+                return BadRequest(new { message = "Tên danh mục không được để trống" });
+            }
+
             var category = await _categoryService.GetCategoryByIdAsync(id);
             if (category == null) return NotFound();
-            category.CategoryName = dto.CategoryName;
-            if (dto.Cover != null && !string.IsNullOrEmpty(dto.Cover.FileName))
+            category.CategoryName = dto.CategoryName.Trim();
+            
+            // Xử lý URL từ S3
+            if (!string.IsNullOrEmpty(dto.Cover))
             {
-                var fileName = Guid.NewGuid() + Path.GetExtension(dto.Cover.FileName);
-                var filePath = Path.Combine(_env.WebRootPath ?? string.Empty, "uploads/category", fileName);
-                Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await dto.Cover.CopyToAsync(stream);
-                }
-                category.Cover = "/uploads/category/" + fileName;
+                category.Cover = dto.Cover;
             }
-            if (dto.HoverCover != null && !string.IsNullOrEmpty(dto.HoverCover.FileName))
+            if (!string.IsNullOrEmpty(dto.HoverCover))
             {
-                var fileName = Guid.NewGuid() + Path.GetExtension(dto.HoverCover.FileName);
-                var filePath = Path.Combine(_env.WebRootPath ?? string.Empty, "uploads/category", fileName);
-                Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await dto.HoverCover.CopyToAsync(stream);
-                }
-                category.HoverCover = "/uploads/category/" + fileName;
+                category.HoverCover = dto.HoverCover;
             }
+            
             await _categoryService.UpdateCategoryAsync(category);
             return Ok(category);
         }
