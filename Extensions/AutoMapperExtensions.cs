@@ -9,6 +9,7 @@ public static class AutoMapperExtensions
         services.AddAutoMapper(typeof(MappingProfile));
         services.AddAutoMapper(typeof(CategoryProfile));
         services.AddAutoMapper(typeof(ReviewProfile));
+        services.AddAutoMapper(typeof(StudentSubmissionProfile));
         return services;
     }
 }
