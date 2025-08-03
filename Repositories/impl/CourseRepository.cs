@@ -42,6 +42,7 @@ namespace Sep490_Eduseen_BE.Repositories.impl
                 .Include(c => c.Teacher)
                 .Include(c => c.Sections.OrderBy(s => s.Order))
                     .ThenInclude(s => s.Lectures.OrderBy(l => l.Order))
+                        .ThenInclude(l => l.Assignments)
                 .Include(c => c.Reviews)
                     .ThenInclude(r => r.Student)
                 .FirstOrDefaultAsync(c => c.CourseId == courseId);
@@ -53,6 +54,9 @@ namespace Sep490_Eduseen_BE.Repositories.impl
                 .Where(c => c.Enrollments.Any(e => e.StudentId == studentId))
                 .Include(c => c.Category)
                 .Include(c => c.Teacher)
+                .Include(c => c.Sections)
+                    .ThenInclude(s => s.Lectures)
+                        .ThenInclude(l => l.Assignments)
                 .ToListAsync();
         }
 
@@ -83,6 +87,7 @@ namespace Sep490_Eduseen_BE.Repositories.impl
         public async Task<IEnumerable<Lecture>> GetLecturesByCourseIdAsync(int courseId)
         {
             return await _context.Lectures
+                .Include(l => l.Assignments)
                 .Where(l => l.Section.CourseId == courseId)
                 .OrderBy(l => l.Order)
                 .ToListAsync();
@@ -132,6 +137,7 @@ namespace Sep490_Eduseen_BE.Repositories.impl
                 .Include(c => c.Reviews)
                 .Include(c => c.Sections)
                     .ThenInclude(s => s.Lectures)
+                        .ThenInclude(l => l.Assignments)
                 .Include(c => c.Favorites)
                 .ToListAsync();
         }
@@ -144,6 +150,7 @@ namespace Sep490_Eduseen_BE.Repositories.impl
                 .Include(c => c.Reviews)
                 .Include(c => c.Sections)
                     .ThenInclude(s => s.Lectures)
+                        .ThenInclude(l => l.Assignments)
                 .Include(c => c.Favorites)
                 .OrderByDescending(c => c.Reviews.Count)
                 .ThenByDescending(c => c.Reviews.Any() ? c.Reviews.Average(r => r.Rating) : 0)
@@ -161,6 +168,14 @@ namespace Sep490_Eduseen_BE.Repositories.impl
             return progressData.ToDictionary(p => p.LectureId, p => p.IsCompleted ?? false);
         }
 
+        public async Task<List<int>> GetFavoriteCourseIdsAsync(int studentId, List<int> courseIds)
+        {
+            return await _context.Favorites
+                .Where(f => f.StudentId == studentId && courseIds.Contains(f.CourseId))
+                .Select(f => f.CourseId)
+                .ToListAsync();
+        }
+
         // Admin methods implementation
         public async Task<IEnumerable<Course>> GetAllCoursesForAdminAsync()
         {
@@ -168,6 +183,8 @@ namespace Sep490_Eduseen_BE.Repositories.impl
                 .Include(c => c.Category)
                 .Include(c => c.Teacher)
                 .Include(c => c.Sections)
+                    .ThenInclude(s => s.Lectures)
+                        .ThenInclude(l => l.Assignments)
                 .Include(c => c.Enrollments)
                 .Include(c => c.Reviews)
                 .OrderByDescending(c => c.CreatedAt)
@@ -181,6 +198,7 @@ namespace Sep490_Eduseen_BE.Repositories.impl
                 .Include(c => c.Teacher)
                 .Include(c => c.Sections)
                     .ThenInclude(s => s.Lectures)
+                        .ThenInclude(l => l.Assignments)
                 .Include(c => c.Enrollments)
                     .ThenInclude(e => e.Student)
                 .Include(c => c.Reviews)
@@ -275,6 +293,9 @@ namespace Sep490_Eduseen_BE.Repositories.impl
             return await _context.Courses
                 .Include(c => c.Category)
                 .Include(c => c.Teacher)
+                .Include(c => c.Sections)
+                    .ThenInclude(s => s.Lectures)
+                        .ThenInclude(l => l.Assignments)
                 .Where(c => c.UpdatedAt == null)
                 .OrderByDescending(c => c.CreatedAt)
                 .ToListAsync();
@@ -286,6 +307,8 @@ namespace Sep490_Eduseen_BE.Repositories.impl
                 .Include(c => c.Category)
                 .Include(c => c.Teacher)
                 .Include(c => c.Sections)
+                    .ThenInclude(s => s.Lectures)
+                        .ThenInclude(l => l.Assignments)
                 .Include(c => c.Enrollments)
                 .Include(c => c.Reviews)
                 .Where(c => c.TeacherId == teacherId)

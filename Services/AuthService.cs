@@ -161,6 +161,13 @@ namespace Sep490_Eduseen_BE.Services
                 return new AuthResponseDTO { IsAuthSuccessful = false, ErrorMessage = "Email đã tồn tại." };
             }
 
+            // Kiểm tra username đã tồn tại
+            var existingUserName = await _userRepository.GetByUserNameAsync(registerDTO.UserName);
+            if (existingUserName != null)
+            {
+                return new AuthResponseDTO { IsAuthSuccessful = false, ErrorMessage = "Tên người dùng đã tồn tại." };
+            }
+
             // Tạo OTP và lưu vào DB
             var otp = new Random().Next(100000, 999999).ToString();
             await _otpService.SaveOtpAsync(registerDTO.Email, otp);
@@ -354,8 +361,8 @@ namespace Sep490_Eduseen_BE.Services
                 var resetLink = $"http://localhost:3000/auth/reset-password?token={token}";
                 await _emailService.SendEmailAsync(
                     user.Email,
-                    "Password Reset",
-                    $"Click the link to reset your password: <a href='{resetLink}'>Reset Password</a>. This link expires in 15 minutes."
+                    "Đặt lại mật khẩu",
+                    $"Nhấn vào link để đặt lại mật khẩu: <a href='{resetLink}'>Đặt lại mật khẩu</a>. Link này sẽ hết hạn sau 15 phút."
                 );
                 return new GenericResponseDTO { Success = true, Message = "Reset link sent. Please check your email." };
             }

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace Sep490_Eduseen_BE.Services
@@ -84,7 +85,26 @@ namespace Sep490_Eduseen_BE.Services
         public async Task<IEnumerable<CourseDto>> GetMyCoursesAsync(int studentId)
         {
             var courses = await _courseRepository.GetEnrolledCoursesByStudentIdAsync(studentId);
-            return _mapper.Map<IEnumerable<CourseDto>>(courses);
+            var courseDtos = _mapper.Map<List<CourseDto>>(courses);
+
+            // Lấy danh sách courseId mà user đã favorite
+            var favoriteCourseIds = courses
+                .Select(c => c.CourseId)
+                .ToList();
+            var favoriteIds = await _courseRepository.GetFavoriteCourseIdsAsync(studentId, favoriteCourseIds);
+
+            foreach (var dto in courseDtos)
+            {
+                // Lấy tổng số lecture
+                var lectures = await _courseRepository.GetLecturesByCourseIdAsync(dto.CourseId);
+                dto.TotalLectures = lectures.Count();
+                // Lấy số lecture đã hoàn thành
+                dto.CompletedLectures = await _courseRepository.GetCompletedLecturesCountAsync(studentId, dto.CourseId);
+                // Set isFavorite
+                dto.IsFavorite = favoriteIds.Contains(dto.CourseId);
+            }
+
+            return courseDtos;
         }
 
         public async Task<(bool Success, string Message)> SaveFavoriteCourseAsync(int studentId, int courseId)
@@ -352,5 +372,7 @@ namespace Sep490_Eduseen_BE.Services
             var courses = await _courseRepository.GetCoursesByTeacherAsync(teacherId);
             return _mapper.Map<IEnumerable<AdminCourseDto>>(courses);
         }
+
+
     }
 }

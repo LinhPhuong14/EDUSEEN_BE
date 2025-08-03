@@ -167,5 +167,14 @@ namespace Sep490_Eduseen_BE.Repositories.impl
                 .FirstOrDefaultAsync(u => u.UserId == id, cancellationToken);
         }
 
+        public async Task<User> GetByUserNameAsync(string userName, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrEmpty(userName))
+            {
+                throw new ArgumentException("Username cannot be null or empty.", nameof(userName));
+            }
+            return await _context.Users.FirstOrDefaultAsync(u => u.Username.ToLower() == userName.ToLower(), cancellationToken);
+        }
+
     }
 }

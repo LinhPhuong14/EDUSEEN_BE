@@ -48,17 +48,19 @@ namespace Sep490_Eduseen_BE.Controllers
                 ScheduledTime = dto.ScheduledTime,
                 Duration = dto.Duration,
                 Status = "Scheduled",
-                CourseId = dto.CourseId
+                CourseId = dto.CourseId // Có thể null
             };
 
             _context.Schedules.Add(schedule);
             await _context.SaveChangesAsync();
 
             var subjectToReceiver = "Bạn có một lịch gọi video mới!";
+            var courseInfo = dto.CourseId.HasValue ? $"<p><strong>Khóa học:</strong> [Khóa học ID: {dto.CourseId}]</p>" : "";
             var bodyToReceiver = $@"
                 <h3>Lịch học mới từ EDUSEEN</h3>
                 <p><strong>Thời gian:</strong> {dto.ScheduledTime:HH:mm dd/MM/yyyy}</p>
                 <p><strong>Người đặt lịch:</strong> {sender.Username} ({senderEmail})</p>
+                {courseInfo}
                 <p>Vui lòng truy cập hệ thống để xác nhận cuộc gọi.</p>
             ";
 
@@ -72,10 +74,12 @@ namespace Sep490_Eduseen_BE.Controllers
             }
 
             var subjectToSender = "Xác nhận đặt lịch gọi thành công";
+            var courseInfoSender = dto.CourseId.HasValue ? $"<p><strong>Khóa học:</strong> [Khóa học ID: {dto.CourseId}]</p>" : "";
             var bodyToSender = $@"
                 <h3>Đặt lịch thành công!</h3>
                 <p>Bạn đã đặt một lịch học với người dùng <strong>{receiver.Username} ({receiver.Email})</strong>.</p>
                 <p><strong>Thời gian:</strong> {dto.ScheduledTime:HH:mm dd/MM/yyyy}</p>
+                {courseInfoSender}
                 <p>Hệ thống EDUSEEN đã gửi thông báo đến người nhận.</p>
             ";
 
@@ -110,7 +114,7 @@ namespace Sep490_Eduseen_BE.Controllers
                     s.ScheduledTime,
                     s.Duration,
                     s.Status,
-                    CourseTitle = s.Course != null ? s.Course.Title : null,
+                    CourseTitle = s.Course != null ? s.Course.Title : "Tư vấn",
                     PartnerName = s.TeacherId == userId
                         ? $"{s.Student.FirstName} {s.Student.LastName}"
                         : $"{s.Teacher.FirstName} {s.Teacher.LastName}",
@@ -203,7 +207,7 @@ namespace Sep490_Eduseen_BE.Controllers
             // Cập nhật dữ liệu
             schedule.ScheduledTime = dto.ScheduledTime;
             schedule.Duration = dto.Duration;
-            schedule.CourseId = dto.CourseId;
+            schedule.CourseId = dto.CourseId; // Có thể null
             schedule.Status = "Rescheduled";
 
             await _context.SaveChangesAsync();
@@ -214,18 +218,22 @@ namespace Sep490_Eduseen_BE.Controllers
             var timeStr = dto.ScheduledTime.ToString("HH:mm dd/MM/yyyy");
 
             var subjectToReceiver = "Cập nhật lịch gọi từ EDUSEEN";
+            var courseInfoUpdate = dto.CourseId.HasValue ? $"<p><strong>Khóa học:</strong> [Khóa học ID: {dto.CourseId}]</p>" : "";
             var bodyToReceiver = $@"
         <h3>Lịch học đã được cập nhật!</h3>
         <p><strong>Người cập nhật:</strong> {user.Username} ({user.Email})</p>
         <p><strong>Thời gian mới:</strong> {timeStr}</p>
+        {courseInfoUpdate}
         <p>Vui lòng truy cập hệ thống để kiểm tra chi tiết.</p>
     ";
 
             var subjectToSender = "Xác nhận cập nhật lịch thành công";
+            var courseInfoUpdateSender = dto.CourseId.HasValue ? $"<p><strong>Khóa học:</strong> [Khóa học ID: {dto.CourseId}]</p>" : "";
             var bodyToSender = $@"
         <h3>Cập nhật lịch học thành công!</h3>
         <p>Bạn đã cập nhật lịch học với <strong>{receiver.Username} ({receiver.Email})</strong>.</p>
         <p><strong>Thời gian mới:</strong> {timeStr}</p>
+        {courseInfoUpdateSender}
         <p>Thông báo đã được gửi đến người kia.</p>
     ";
 
