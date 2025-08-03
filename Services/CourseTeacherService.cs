@@ -494,6 +494,84 @@ namespace Sep490_Eduseen_BE.Services
             }).ToList()
         };
 
+        public async Task<IEnumerable<StudentGradeDTO>> GetStudentGradesAsync(int courseId, int teacherId)
+        {
+            // Kiểm tra quyền truy cập
+            var course = await _context.Courses
+                .FirstOrDefaultAsync(c => c.CourseId == courseId && c.TeacherId == teacherId);
+            
+            if (course == null)
+                throw new UnauthorizedAccessException("Bạn không có quyền xem thông tin khóa học này.");
+
+            // Lấy tất cả học viên đăng ký khóa học
+            var enrollments = await _context.Enrollments
+                .Include(e => e.Student)
+                .Where(e => e.CourseId == courseId)
+                .ToListAsync();
+
+            // Lấy tất cả bài tập của khóa học
+            var assignments = await _context.Assignments
+                .Include(a => a.Lecture)
+                    .ThenInclude(l => l.Section)
+                .Where(a => a.Lecture.Section.CourseId == courseId)
+                .ToListAsync();
+
+            var result = new List<StudentGradeDTO>();
+
+            foreach (var enrollment in enrollments)
+            {
+                var studentGrades = new StudentGradeDTO
+                {
+                    StudentId = enrollment.StudentId,
+                    StudentName = $"{enrollment.Student.FirstName} {enrollment.Student.LastName}".Trim(),
+                    StudentEmail = enrollment.Student.Email,
+                    AssignmentGrades = new List<AssignmentGradeDTO>(),
+                    TotalAssignments = assignments.Count,
+                    CompletedAssignments = 0
+                };
+
+                double totalGrade = 0;
+                int gradedCount = 0;
+
+                foreach (var assignment in assignments)
+                {
+                    // Lấy submission mới nhất của học viên cho bài tập này
+                    var submission = await _context.Submissions
+                        .Where(s => s.AssignmentId == assignment.AssignmentId && s.StudentId == enrollment.StudentId)
+                        .OrderByDescending(s => s.AttemptNumber)
+                        .FirstOrDefaultAsync();
+
+                    var assignmentGrade = new AssignmentGradeDTO
+                    {
+                        AssignmentId = assignment.AssignmentId,
+                        AssignmentTitle = assignment.Title,
+                        Grade = submission?.Grade.HasValue == true ? (double?)submission.Grade.Value : null,
+                        SubmittedAt = submission?.SubmittedAt,
+                        Status = submission == null ? "Not Submitted" : 
+                                submission.Grade.HasValue ? "Graded" : "Submitted"
+                    };
+
+                    studentGrades.AssignmentGrades.Add(assignmentGrade);
+
+                    if (submission != null)
+                    {
+                        studentGrades.CompletedAssignments++;
+                        if (submission.Grade.HasValue)
+                        {
+                            totalGrade += (double)submission.Grade.Value;
+                            gradedCount++;
+                        }
+                    }
+                }
+
+                // Tính điểm trung bình
+                studentGrades.AverageGrade = gradedCount > 0 ? totalGrade / gradedCount : 0;
+                result.Add(studentGrades);
+            }
+
+            return result.OrderBy(s => s.StudentName);
+        }
+
     }
 
 }
