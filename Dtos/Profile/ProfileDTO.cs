@@ -46,6 +46,7 @@ namespace Sep490_Eduseen_BE.Dtos
         //public string? AvatarUrl { get; set; }
 
         public int? RoleId { get; set; }
+        public bool? IsActive { get; set; } // Thêm dòng này để FE truyền trạng thái user
     }
     public class ServiceResponse<T>
     {

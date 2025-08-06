@@ -46,19 +46,27 @@ namespace Sep490_Eduseen_BE.Services
                     };
                 }
 
-                // Validate chỉ được phép cập nhật role
-                if (!UpdateUserDTO.RoleId.HasValue)
+                // Validate chỉ được phép cập nhật role hoặc trạng thái
+                if (!UpdateUserDTO.RoleId.HasValue && !UpdateUserDTO.IsActive.HasValue)
                 {
                     return new ServiceResponse<bool>
                     {
                         Success = false,
                         StatusCode = 400,
-                        ErrorMessage = "RoleId is required."
+                        ErrorMessage = "RoleId hoặc IsActive là bắt buộc."
                     };
                 }
 
-                // Chỉ cập nhật role
-                user.RoleId = UpdateUserDTO.RoleId.Value;
+                // Cập nhật role nếu có
+                if (UpdateUserDTO.RoleId.HasValue)
+                {
+                    user.RoleId = UpdateUserDTO.RoleId.Value;
+                }
+                // Cập nhật trạng thái nếu có
+                if (UpdateUserDTO.IsActive.HasValue)
+                {
+                    user.IsActive = UpdateUserDTO.IsActive.Value;
+                }
                 user.UpdatedAt = DateTime.UtcNow;
 
                 await _userRepository.UpdateAsync(user, cancellationToken);
