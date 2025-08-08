@@ -9,5 +9,6 @@
         public DateTime? SubmittedAt { get; set; }
         public decimal? Grade { get; set; }
         public string? Feedback { get; set; }
+        public List<SubmissionFileResponseDTO> Files { get; set; } = new();
     }
 }

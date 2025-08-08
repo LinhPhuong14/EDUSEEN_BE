@@ -91,6 +91,13 @@ namespace Sep490_Eduseen_BE.Controllers
             if (!int.TryParse(userIdStr, out int userId))
                 return Unauthorized("Không thể xác định người dùng.");
 
+            // Validate input
+            if (string.IsNullOrWhiteSpace(dto.Title))
+                return BadRequest("Tiêu đề bài tập không được để trống.");
+
+            if (dto.DueDate.HasValue && dto.DueDate.Value <= DateTime.UtcNow)
+                return BadRequest("Hạn nộp phải sau thời gian hiện tại.");
+
             var lecture = await _context.Lectures
                 .Include(l => l.Section)
                 .FirstOrDefaultAsync(l => l.LectureId == dto.LectureId);
@@ -182,6 +189,13 @@ namespace Sep490_Eduseen_BE.Controllers
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdStr, out int userId))
                 return Unauthorized("Không thể xác định người dùng.");
+
+            // Validate input
+            if (string.IsNullOrWhiteSpace(dto.Title))
+                return BadRequest("Tiêu đề bài tập không được để trống.");
+
+            if (dto.DueDate.HasValue && dto.DueDate.Value <= DateTime.UtcNow)
+                return BadRequest("Hạn nộp phải sau thời gian hiện tại.");
 
             var assignment = await _context.Assignments.FirstOrDefaultAsync(a => a.AssignmentId == assignmentId);
             if (assignment == null)

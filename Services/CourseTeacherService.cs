@@ -230,6 +230,7 @@ namespace Sep490_Eduseen_BE.Services
 
             var submissions = await _context.Submissions
                 .Include(s => s.Student)
+                .Include(s => s.SubmissionFiles)
                 .Where(s => s.AssignmentId == assignmentId)
                 .OrderByDescending(s => s.SubmittedAt)
                 .Select(s => new SubmissionListItemDto
@@ -240,7 +241,13 @@ namespace Sep490_Eduseen_BE.Services
                     AttemptNumber = s.AttemptNumber,
                     SubmittedAt = s.SubmittedAt,
                     Grade = s.Grade,
-                    Feedback = s.Feedback
+                    Feedback = s.Feedback,
+                    Files = s.SubmissionFiles.Select(f => new SubmissionFileResponseDTO
+                    {
+                        FileId = f.FileId,
+                        FileUrl = f.FileUrl,
+                        FileName = f.FileName
+                    }).ToList()
                 })
                 .ToListAsync();
 
