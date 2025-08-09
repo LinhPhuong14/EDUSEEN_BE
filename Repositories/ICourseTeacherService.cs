@@ -14,5 +14,6 @@ namespace Sep490_Eduseen_BE.Repositories
         Task<AssignmentSubmissionsDto> GetAssignmentSubmissionsAsync(int assignmentId, int teacherId);
         Task<AssignmentAnalysisDTO> GetHomeworkAnalysisAsync(int assignmentId, int teacherId);
         Task<IEnumerable<CourseDTO>> GetCoursesAsync(int teacherId);
+        Task<IEnumerable<StudentGradeDTO>> GetStudentGradesAsync(int courseId, int teacherId);
     }
 }

@@ -213,5 +213,50 @@ namespace Sep490_Eduseen_BE.Controllers
 
             return Ok(new { message = "Cập nhật bài tập thành công." });
         }
+
+        [HttpDelete("{assignmentId}")]
+        public async Task<IActionResult> DeleteAssignment(int assignmentId)
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdStr, out int userId))
+                return Unauthorized("Không thể xác định người dùng.");
+
+            var assignment = await _context.Assignments
+                .Include(a => a.Submissions)
+                    .ThenInclude(s => s.SubmissionFiles)
+                .FirstOrDefaultAsync(a => a.AssignmentId == assignmentId);
+
+            if (assignment == null)
+                return NotFound("Không tìm thấy bài tập.");
+
+            // Chỉ cho phép người tạo bài tập xóa
+            if (assignment.CreatedBy != userId)
+            {
+                return Forbid("Bạn không có quyền xóa bài tập này.");
+            }
+
+            try
+            {
+                // Xóa tất cả submission files trước
+                foreach (var submission in assignment.Submissions)
+                {
+                    _context.SubmissionFiles.RemoveRange(submission.SubmissionFiles);
+                }
+
+                // Xóa tất cả submissions
+                _context.Submissions.RemoveRange(assignment.Submissions);
+
+                // Xóa assignment
+                _context.Assignments.Remove(assignment);
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = "Xóa bài tập thành công." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi khi xóa bài tập: " + ex.Message });
+            }
+        }
     }
 }
