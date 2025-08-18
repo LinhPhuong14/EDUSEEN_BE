@@ -8,6 +8,7 @@ using Sep490_Eduseen_BE.Models;
 using Sep490_Eduseen_BE.Services;
 using System.IO;
 using System.IO.Compression;
+using System.Security.Claims;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -191,12 +192,12 @@ public class StudentSubmissionController : ControllerBase
     /// <returns>User ID</returns>
     private int GetCurrentUserId()
     {
-        // TODO: Implement logic lấy user ID từ JWT token hoặc session
-        // Ví dụ:
-        // var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        // return userIdClaim != null ? int.Parse(userIdClaim.Value) : 0;
-        
-        // Tạm thời return 1 để test
-        return 1;
+        var studentIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(studentIdString, out var studentId))
+        {
+            return 0;
+        }
+
+        return studentId;
     }
 }
