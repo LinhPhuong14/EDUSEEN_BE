@@ -102,6 +102,14 @@ namespace Sep490_Eduseen_BE.Controllers
             return Ok(analysis);
         }
 
+        [HttpGet("{courseId}/students/grades")]
+        public async Task<IActionResult> GetStudentGrades(int courseId)
+        {
+            var teacherId = GetTeacherId();
+            var studentGrades = await _service.GetStudentGradesAsync(courseId, teacherId);
+            return Ok(studentGrades);
+        }
+
 
     }
 }

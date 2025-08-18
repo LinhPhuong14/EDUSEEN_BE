@@ -151,7 +151,7 @@ namespace Sep490_Eduseen_BE.Services
             context.Response.Cookies.Append("accessToken", tokenDTO.AccessToken,
                 new CookieOptions
                 {
-                    Expires = DateTimeOffset.UtcNow.AddMinutes(5),
+                    Expires = DateTimeOffset.UtcNow.AddMinutes(60), 
                     HttpOnly = true,
                     Secure = true,
                     SameSite = SameSiteMode.Strict
@@ -219,7 +219,7 @@ namespace Sep490_Eduseen_BE.Services
 
         private JwtSecurityToken GenerateTokenOptions(SigningCredentials signingCredentials, List<Claim> claims)
         {
-            var expiryMinutes = double.TryParse(_configuration["JWT:ExpiryMinutes"], out var minutes) ? minutes : 5;
+            var expiryMinutes = double.TryParse(_configuration["JWT:ExpiryMinutes"], out var minutes) ? minutes : 60; 
             return new JwtSecurityToken(
                 issuer: _configuration["JWT:Issuer"],
                 audience: _configuration["JWT:Audience"],
