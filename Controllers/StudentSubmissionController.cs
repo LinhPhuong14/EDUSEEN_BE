@@ -121,6 +121,8 @@ public class StudentSubmissionController : ControllerBase
                 AttemptNumber = submission.AttemptNumber,
                 SubmittedAt = submission.SubmittedAt ?? DateTime.UtcNow,
                 SubmissionContent = submission.SubmissionContent,
+                Grade = submission.Grade,
+                Feedback = submission.Feedback,
                 Files = submission.SubmissionFiles.Select(f => new SubmissionFileResponseDTO
                 {
                     FileId = f.FileId,
@@ -168,6 +170,8 @@ public class StudentSubmissionController : ControllerBase
                 AttemptNumber = s.AttemptNumber,
                 SubmittedAt = s.SubmittedAt ?? DateTime.UtcNow,
                 SubmissionContent = s.SubmissionContent,
+                Grade = s.Grade,
+                Feedback = s.Feedback,
                 Files = s.SubmissionFiles.Select(f => new SubmissionFileResponseDTO
                 {
                     FileId = f.FileId,
