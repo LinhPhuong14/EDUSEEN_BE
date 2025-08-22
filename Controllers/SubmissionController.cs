@@ -206,7 +206,8 @@ public class SubmissionController : ControllerBase
             CreatedAt = assignment.CreatedAt,
             SubmissionStatus = latestSubmission == null ? "Chưa nộp" : (latestSubmission.Grade.HasValue ? "Đã chấm điểm" : "Đã nộp"),
             SubmittedAt = latestSubmission?.SubmittedAt,
-            Grade = latestSubmission?.Grade
+            Grade = latestSubmission?.Grade,
+            Feedback = latestSubmission?.Feedback
         };
 
         return Ok(dto);

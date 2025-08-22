@@ -52,6 +52,7 @@ namespace Sep490_Eduseen_BE.Controllers
                 SubmissionStatus = submission == null ? "Chưa nộp" : (submission.Grade.HasValue ? "Đã chấm điểm" : "Đã nộp"),
                 SubmittedAt = submission?.SubmittedAt,
                 Grade = submission?.Grade,
+                Feedback = submission?.Feedback,
                 LectureId = assignment.LectureId,
                 LectureTitle = assignment.Lecture.Title
             };

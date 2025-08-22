@@ -8,6 +8,8 @@ public class StudentSubmissionResponseDTO
     public int AttemptNumber { get; set; }
     public DateTime SubmittedAt { get; set; }
     public string? SubmissionContent { get; set; }
+    public decimal? Grade { get; set; }
+    public string? Feedback { get; set; }
     public List<SubmissionFileResponseDTO> Files { get; set; } = new();
     public string Message { get; set; } = string.Empty;
 }
