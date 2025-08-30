@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Sep490_Eduseen_BE.Repositories;
 using Sep490_Eduseen_BE.Dtos;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
+using Sep490_Eduseen_BE.Models;
 
 namespace Sep490_Eduseen_BE.Controllers
 {
@@ -14,10 +16,12 @@ namespace Sep490_Eduseen_BE.Controllers
 
         private readonly ICourseTeacherService _service;
         private readonly IReviewService _rvservice;
-        public TeacherCourseController(IReviewService rvservice, ICourseTeacherService service)
+        private readonly Sep490EduseenContext _context;
+        public TeacherCourseController(IReviewService rvservice, ICourseTeacherService service, Sep490EduseenContext context)
         {
             _service = service;
             _rvservice = rvservice;
+            _context = context;
         }
         [HttpGet("{courseId}")]
         public async Task<IActionResult> GetCourse(int courseId)
@@ -81,6 +85,49 @@ namespace Sep490_Eduseen_BE.Controllers
 
         [HttpPost("review/{reviewId}/response")]
         public async Task<IActionResult> RespondToReview(int reviewId, [FromBody] RespondReviewDTO dto)
+        {
+            var teacherId = GetTeacherId();
+            var response = await _rvservice.RespondToReviewAsync(reviewId, teacherId, dto.ResponseText);
+            return Ok(response);
+        }
+
+        // lấy danh sách review + thông tin khoá học
+        [HttpGet("{courseId}/reviews")]
+        public async Task<IActionResult> GetCourseReviews(int courseId)
+        {
+            var teacherId = GetTeacherId();
+
+            var course = await _context.Courses.FirstOrDefaultAsync(c => c.CourseId == courseId && c.TeacherId == teacherId);
+            if (course == null) return NotFound("Khoá học không tồn tại hoặc bạn không có quyền.");
+
+            var reviewsData = await _context.Reviews
+                .Include(r => r.Student)
+                .Include(r => r.ReviewResponses)
+                .Where(r => r.CourseId == courseId)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync();
+
+            var reviews = reviewsData.Select(r => new {
+                id = r.ReviewId,
+                name = ($"{r.Student.FirstName} {r.Student.LastName}").Trim(),
+                rating = r.Rating,
+                desc = r.Comment,
+                date = r.CreatedAt?.ToString("dd/MM/yyyy"),
+                teacherReply = r.ReviewResponses.Select(x => x.ResponseText).FirstOrDefault()
+            }).ToList();
+
+            return Ok(new
+            {
+                courseId = course.CourseId,
+                title = course.Title,
+                cover = course.Cover,
+                reviews
+            });
+        }
+
+        // teacher reply review
+        [HttpPost("review/{reviewId}/reply")]
+        public async Task<IActionResult> ReplyReview(int reviewId, [FromBody] RespondReviewDTO dto)
         {
             var teacherId = GetTeacherId();
             var response = await _rvservice.RespondToReviewAsync(reviewId, teacherId, dto.ResponseText);
