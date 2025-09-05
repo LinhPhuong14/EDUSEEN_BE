@@ -36,15 +36,14 @@ public static class SwaggerExtensions
         return services;
     }
 
-    public static IApplicationBuilder UseSwaggerServices(this IApplicationBuilder app, IWebHostEnvironment environment){
-        if(environment.IsDevelopment()){
-            app.UseSwagger();
-            app.UseSwaggerUI(option =>
-            {
-                option.SwaggerEndpoint("/swagger/v1/swagger.json", "Demo API v1");
-            });
-        }
+   public static IApplicationBuilder UseSwaggerServices(this IApplicationBuilder app, IWebHostEnvironment environment){
+    app.UseSwagger();
+    app.UseSwaggerUI(option =>
+    {
+        option.SwaggerEndpoint("/swagger/v1/swagger.json", "Demo API v1");
+        option.RoutePrefix = "swagger"; // truy cập tại /swagger
+    });
 
-        return app;
-    }
+    return app;
+}
 }
