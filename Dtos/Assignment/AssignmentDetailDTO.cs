@@ -12,6 +12,7 @@
         public string SubmissionStatus { get; set; } = "Chưa nộp";
         public DateTime? SubmittedAt { get; set; }
         public decimal? Grade { get; set; }
+        public string? Feedback { get; set; }
 
         public int LectureId { get; set; }            
         public string? LectureTitle { get; set; }     

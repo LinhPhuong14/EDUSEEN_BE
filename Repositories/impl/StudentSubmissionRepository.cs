@@ -58,6 +58,8 @@ public class StudentSubmissionRepository : IStudentSubmissionRepository
             AttemptNumber = submission.AttemptNumber,
             SubmittedAt = submission.SubmittedAt ?? DateTime.UtcNow,
             SubmissionContent = submission.SubmissionContent,
+            Grade = submission.Grade,
+            Feedback = submission.Feedback,
             Files = submission.SubmissionFiles.Select(f => new SubmissionFileResponseDTO
             {
                 FileId = f.FileId,

@@ -185,16 +185,24 @@ namespace Sep490_Eduseen_BE.Services
 
             var assignmentIds = assignments.Select(a => a.AssignmentId).ToList();
 
-            var submissionStats = await _context.Submissions
+            // Tách logic để tránh lỗi projection phức tạp
+            var allSubmissions = await _context.Submissions
                 .Where(s => assignmentIds.Contains(s.AssignmentId))
+                .ToListAsync();
+
+            var submissionStats = allSubmissions
                 .GroupBy(s => s.AssignmentId)
                 .Select(g => new
                 {
                     AssignmentId = g.Key,
                     TotalSubmitted = g.Select(s => s.StudentId).Distinct().Count(),
-                    AverageGrade = g.Where(s => s.Grade != null).Average(s => (double?)s.Grade) ?? 0.0
+                    // Chỉ tính điểm trung bình dựa trên bài nộp cuối cùng của mỗi học sinh
+                    AverageGrade = g.GroupBy(s => s.StudentId)
+                                   .Select(studentGroup => studentGroup.OrderByDescending(s => s.AttemptNumber).FirstOrDefault())
+                                   .Where(s => s != null && s.Grade != null)
+                                   .Average(s => (double?)s.Grade) ?? 0.0
                 })
-                .ToListAsync();
+                .ToList();
 
             var statDict = submissionStats.ToDictionary(s => s.AssignmentId);
 
@@ -228,10 +236,18 @@ namespace Sep490_Eduseen_BE.Services
             if (assignment.Lecture.Section.Course.TeacherId != teacherId)
                 throw new UnauthorizedAccessException("Bạn không có quyền truy cập các bài nộp của bài tập này.");
 
-            var submissions = await _context.Submissions
+            // Chỉ lấy bài nộp cuối cùng (có AttemptNumber cao nhất) của mỗi học sinh
+            // Tách logic để tránh lỗi projection phức tạp với EF
+            var allSubmissions = await _context.Submissions
                 .Include(s => s.Student)
+                .Include(s => s.SubmissionFiles)
                 .Where(s => s.AssignmentId == assignmentId)
-                .OrderByDescending(s => s.SubmittedAt)
+                .ToListAsync();
+
+            var submissions = allSubmissions
+                .GroupBy(s => s.StudentId)
+                .Select(g => g.OrderByDescending(s => s.AttemptNumber).FirstOrDefault())
+                .Where(s => s != null)
                 .Select(s => new SubmissionListItemDto
                 {
                     SubmissionId = s.SubmissionId,
@@ -240,9 +256,16 @@ namespace Sep490_Eduseen_BE.Services
                     AttemptNumber = s.AttemptNumber,
                     SubmittedAt = s.SubmittedAt,
                     Grade = s.Grade,
-                    Feedback = s.Feedback
+                    Feedback = s.Feedback,
+                    Files = s.SubmissionFiles.Select(f => new SubmissionFileResponseDTO
+                    {
+                        FileId = f.FileId,
+                        FileUrl = f.FileUrl,
+                        FileName = f.FileName
+                    }).ToList()
                 })
-                .ToListAsync();
+                .OrderByDescending(s => s.SubmittedAt)
+                .ToList();
 
             // Get students who have not submitted
             var courseId = assignment.Lecture.Section.CourseId;

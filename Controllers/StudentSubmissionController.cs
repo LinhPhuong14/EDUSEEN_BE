@@ -8,6 +8,7 @@ using Sep490_Eduseen_BE.Models;
 using Sep490_Eduseen_BE.Services;
 using System.IO;
 using System.IO.Compression;
+using System.Security.Claims;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -120,6 +121,8 @@ public class StudentSubmissionController : ControllerBase
                 AttemptNumber = submission.AttemptNumber,
                 SubmittedAt = submission.SubmittedAt ?? DateTime.UtcNow,
                 SubmissionContent = submission.SubmissionContent,
+                Grade = submission.Grade,
+                Feedback = submission.Feedback,
                 Files = submission.SubmissionFiles.Select(f => new SubmissionFileResponseDTO
                 {
                     FileId = f.FileId,
@@ -167,6 +170,8 @@ public class StudentSubmissionController : ControllerBase
                 AttemptNumber = s.AttemptNumber,
                 SubmittedAt = s.SubmittedAt ?? DateTime.UtcNow,
                 SubmissionContent = s.SubmissionContent,
+                Grade = s.Grade,
+                Feedback = s.Feedback,
                 Files = s.SubmissionFiles.Select(f => new SubmissionFileResponseDTO
                 {
                     FileId = f.FileId,
@@ -191,12 +196,12 @@ public class StudentSubmissionController : ControllerBase
     /// <returns>User ID</returns>
     private int GetCurrentUserId()
     {
-        // TODO: Implement logic lấy user ID từ JWT token hoặc session
-        // Ví dụ:
-        // var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        // return userIdClaim != null ? int.Parse(userIdClaim.Value) : 0;
-        
-        // Tạm thời return 1 để test
-        return 1;
+        var studentIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(studentIdString, out var studentId))
+        {
+            return 0;
+        }
+
+        return studentId;
     }
 }
