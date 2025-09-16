@@ -1,13 +1,14 @@
-   services:
-     - type: web
-       name: eduseen-be
-       runtime: dotnet
-       rootDir: "SEP BE/EDUSEEN_BE"           # thư mục chứa dự án .NET
-       branch: main
-       buildCommand: dotnet publish Sep490_Eduseen_BE.csproj -c Release -o out
-       startCommand: dotnet out/Sep490_Eduseen_BE.dll
-       envVars:
-         - key: ASPNETCORE_ENVIRONMENT
-           value: Production
-         - key: ConnectionStrings__Default
-           sync: false          # set trong trang Dashboard
+services:
+  - type: web
+    name: eduseen-be
+    runtime: dotnet
+    branch: main
+
+    buildCommand: dotnet publish -c Release -o out
+    startCommand: dotnet out/Sep490_Eduseen_BE.dll
+
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ConnectionStrings__Default
+        sync: false
