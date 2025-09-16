@@ -1,12 +1,11 @@
 services:
   - type: web
     name: eduseen-be
-    runtime: dotnet
+    env: dotnet
+    plan: free
     branch: main
-
     buildCommand: dotnet publish -c Release -o out
-    startCommand: dotnet out/Sep490_Eduseen_BE.dll
-
+    startCommand: dotnet ./out/Sep490_Eduseen_BE.dll
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
