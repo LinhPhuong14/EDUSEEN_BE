@@ -113,7 +113,8 @@ namespace Sep490_Eduseen_BE.Controllers
                 rating = r.Rating,
                 desc = r.Comment,
                 date = r.CreatedAt?.ToString("dd/MM/yyyy"),
-                teacherReply = r.ReviewResponses.Select(x => x.ResponseText).FirstOrDefault()
+                teacherReply = r.ReviewResponses.Select(x => x.ResponseText).FirstOrDefault(),
+                responseId = r.ReviewResponses.Select(x => x.ResponseId).FirstOrDefault()
             }).ToList();
 
             return Ok(new
@@ -132,6 +133,32 @@ namespace Sep490_Eduseen_BE.Controllers
             var teacherId = GetTeacherId();
             var response = await _rvservice.RespondToReviewAsync(reviewId, teacherId, dto.ResponseText);
             return Ok(response);
+        }
+
+        // teacher update review reply
+        [HttpPut("review/response/{responseId}")]
+        public async Task<IActionResult> UpdateReviewReply(int responseId, [FromBody] RespondReviewDTO dto)
+        {
+            var teacherId = GetTeacherId();
+            try
+            {
+                var response = await _rvservice.UpdateReviewResponseAsync(responseId, teacherId, dto.ResponseText);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        // teacher delete review reply
+        [HttpDelete("review/response/{responseId}")]
+        public async Task<IActionResult> DeleteReviewReply(int responseId)
+        {
+            var teacherId = GetTeacherId();
+            var deleted = await _rvservice.DeleteReviewResponseAsync(responseId, teacherId);
+            if (!deleted) return NotFound("Response not found or unauthorized");
+            return NoContent();
         }
 
         [HttpGet("{courseId}/assignments")]

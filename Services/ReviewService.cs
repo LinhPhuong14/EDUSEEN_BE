@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using Sep490_Eduseen_BE.Dtos;
 using Sep490_Eduseen_BE.Hubs;
 using Sep490_Eduseen_BE.Models;
@@ -45,5 +46,55 @@ public class ReviewService : IReviewService
             .SendAsync("ReceiveReviewResponse", reviewId, responseDto);
 
         return responseDto;
+    }
+
+    public async Task<ReviewResponseDTO> UpdateReviewResponseAsync(int responseId, int teacherId, string responseText)
+    {
+        var response = await _context.ReviewResponses
+            .Include(r => r.Review)
+            .FirstOrDefaultAsync(r => r.ResponseId == responseId && r.TeacherId == teacherId);
+        
+        if (response == null) throw new Exception("Review response not found or unauthorized");
+
+        response.ResponseText = responseText;
+        response.CreatedAt = DateTime.UtcNow;
+        
+        await _context.SaveChangesAsync();
+
+        var courseId = response.Review.CourseId;
+
+        var responseDto = new ReviewResponseDTO
+        {
+            ResponseId = response.ResponseId,
+            ReviewId = response.ReviewId,
+            TeacherId = response.TeacherId,
+            ResponseText = response.ResponseText,
+            CreatedAt = response.CreatedAt
+        };
+
+        await _hubContext.Clients.Group($"course_{courseId}")
+            .SendAsync("UpdateReviewResponse", responseId, responseDto);
+
+        return responseDto;
+    }
+
+    public async Task<bool> DeleteReviewResponseAsync(int responseId, int teacherId)
+    {
+        var response = await _context.ReviewResponses
+            .Include(r => r.Review)
+            .FirstOrDefaultAsync(r => r.ResponseId == responseId && r.TeacherId == teacherId);
+        
+        if (response == null) return false;
+
+        var courseId = response.Review.CourseId;
+        var reviewId = response.ReviewId;
+
+        _context.ReviewResponses.Remove(response);
+        await _context.SaveChangesAsync();
+
+        await _hubContext.Clients.Group($"course_{courseId}")
+            .SendAsync("DeleteReviewResponse", responseId, reviewId);
+
+        return true;
     }
 }
